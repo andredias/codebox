@@ -35,7 +35,7 @@ class Runner(object):
 class PythonRunner(Runner):
 
     def _run(self, _input=None):
-        return sh.python3(self.filename, _in=_input)
+        return sh.python3(self.filename, _in=_input, _ok_code=[0, 1])
 
     def _collect_metrics(self):
         pass
