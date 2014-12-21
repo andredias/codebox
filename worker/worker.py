@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 
 TIMEOUT = 5
 TIMEOUT_EXIT_CODE = 124
+OK_CODE = range(128)  # sh does not work with python3 range yet
 
 class Runner(object):
 
@@ -22,7 +23,7 @@ class Runner(object):
         self.sourcefile.write(job['source'])
         self.sourcefile.flush()
         output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=_input,
-                            _ok_code=[0, 1, TIMEOUT_EXIT_CODE])
+                            _ok_code=[0, 1, 2, TIMEOUT_EXIT_CODE])
         if output is not None:
             sys.stdout.write(output.stdout.decode('utf-8'))
             sys.stderr.write(output.stderr.decode('utf-8'))

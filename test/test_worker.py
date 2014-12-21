@@ -22,8 +22,11 @@ def setup():
 def run(source, _input=None, timeout=5):
     job = {'input':_input, 'source':source, 'timeout':timeout}
     job_json = json.dumps(job)
-    output = docker.run('-i', '--rm', '-v', '%s:/home/worker' % WORKER_DIR, IMAGE, _in=job_json,
-                        _ok_code=[0, 1])
+    output = docker.run('-i',
+                        '--rm',
+                        '-v', '%s:/home/worker' % WORKER_DIR,
+                        '--net', 'none',
+                        IMAGE, _in=job_json, _ok_code=[0, 1])
     return output.stdout.decode('utf-8'), output.stderr.decode('utf-8')
 
 
@@ -81,7 +84,8 @@ for line in sys.stdin.readlines():
         assert out == 'Going to sleep...\n'
         assert 'ERROR: Running time limit exceeded' in err
 
-
-
-
-
+    def test_net_access(self):
+        source = 'from sh import ping\nprint(ping("www.google.com"))'
+        out, err = run(source)
+        assert out == ''
+        assert 'ping: unknown host www.google.com' in err
