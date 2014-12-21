@@ -5,6 +5,8 @@ import sys
 import json
 from tempfile import NamedTemporaryFile
 
+TIMEOUT = 5
+TIMEOUT_EXIT_CODE = 124
 
 class Runner(object):
 
@@ -12,42 +14,29 @@ class Runner(object):
     Generic class to manage source code processing
     '''
 
-    def __init__(self, filename):
-        self.filename = filename
-        self.output = None
+    def __call__(self, job):
+        _input = job.get('input', None)
+        self.timeout = job.get('timeout', TIMEOUT)
+        # save source to a temporary file for compiling and running it later
+        self.sourcefile = NamedTemporaryFile(mode='w', encoding='utf-8')
+        self.sourcefile.write(job['source'])
+        self.sourcefile.flush()
+        output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=_input,
+                            _ok_code=[0, 1, TIMEOUT_EXIT_CODE])
+        if output is not None:
+            sys.stdout.write(output.stdout.decode('utf-8'))
+            sys.stderr.write(output.stderr.decode('utf-8'))
+            if output.exit_code == TIMEOUT_EXIT_CODE:
+                sys.stderr.write('\nERROR: Running time limit exceeded %ss' % self.timeout)
         return
-
-    def _write(self):
-        sys.stdout.write(self.output.stdout.decode('utf-8'))
-        sys.stderr.write(self.output.stderr.decode('utf-8'))
-        return
-
-    def run(self, _input=None):
-        self.output = self._run(_input)
-        if self.output is not None:
-            self._write()
-        return
-
-    def _run(self, _input=None):
-        raise NotImplementedError()
 
 
 class PythonRunner(Runner):
 
-    def _run(self, _input=None):
-        return sh.python3(self.filename, _in=_input, _ok_code=[0, 1])
-
-    def _collect_metrics(self):
-        pass
-
-
-def work(job):
-    with NamedTemporaryFile(mode='w', encoding='utf-8') as sourcefile:
-        sourcefile.write(job['source'])
-        sourcefile.flush()
-        PythonRunner(sourcefile.name).run(job['input'])
-    return
+    def _run_command(self):
+        return ['/usr/bin/python3', self.sourcefile.name]
 
 
 if __name__ == '__main__':
-    work(json.load(sys.stdin))
+    py_runner = PythonRunner()
+    py_runner(json.load(sys.stdin))

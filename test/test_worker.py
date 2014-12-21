@@ -5,24 +5,25 @@ import sh
 import json
 
 from sh import docker
+from os.path import abspath, dirname, join
 
 IMAGE = 'codebox'
+WORKER_DIR = abspath(join(dirname(__file__), '../worker'))
 
 def CreateDockerImage():
     images = str(docker.images())
     if re.search('\ncodebox\s', images) is None:
-        from os.path import dirname, join
-        worker_dir = join(dirname(__file__), '../worker')
-        docker.build('--tag', IMAGE, worker_dir)
+        docker.build('--tag', IMAGE, WORKER_DIR)
     return
 
 def setup():
     CreateDockerImage()
 
-def run(source, _input=None):
-    job = {'input':_input, 'source':source}
+def run(source, _input=None, timeout=5):
+    job = {'input':_input, 'source':source, 'timeout':timeout}
     job_json = json.dumps(job)
-    output = docker.run('-i', '--rm', IMAGE, _in=job_json, _ok_code=[0, 1])
+    output = docker.run('-i', '--rm', '-v', '%s:/home/worker' % WORKER_DIR, IMAGE, _in=job_json,
+                        _ok_code=[0, 1])
     return output.stdout.decode('utf-8'), output.stderr.decode('utf-8')
 
 
@@ -73,6 +74,13 @@ for line in sys.stdin.readlines():
         out, err = run(source, text)
         assert out == 'Hello\nWorld'
         assert err == ''
+
+    def test_process_timeout(self):
+        source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
+        out, err = run(source, timeout=0.1)
+        assert out == 'Going to sleep...\n'
+        assert 'ERROR: Running time limit exceeded' in err
+
 
 
 
