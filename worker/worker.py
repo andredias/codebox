@@ -3,11 +3,8 @@
 import sh
 import sys
 import json
-from tempfile import NamedTemporaryFile
 
-TIMEOUT = 5
 TIMEOUT_EXIT_CODE = 124
-OK_CODE = range(128)  # sh does not work with python3 range yet
 
 class Runner(object):
 
@@ -15,15 +12,19 @@ class Runner(object):
     Generic class to manage source code processing
     '''
 
+    sourcefilename = '/tmp/source'
+    _timeout = 5
+    ok_code = list(range(128))  # sh does not work with python3 range yet
+
     def __call__(self, job):
         _input = job.get('input', None)
-        self.timeout = job.get('timeout', TIMEOUT)
+        self.timeout = job.get('timeout', self._timeout)
         # save source to a temporary file for compiling and running it later
-        self.sourcefile = NamedTemporaryFile(mode='w', encoding='utf-8')
-        self.sourcefile.write(job['source'])
-        self.sourcefile.flush()
+        with open(self.sourcefilename, mode='w', encoding='utf-8') as sourcefile:
+            sourcefile.write(job['source'])
+            sourcefile.flush()
         output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=_input,
-                            _ok_code=[0, 1, 2, TIMEOUT_EXIT_CODE])
+                            _ok_code=self.ok_code)
         if output is not None:
             sys.stdout.write(output.stdout.decode('utf-8'))
             sys.stderr.write(output.stderr.decode('utf-8'))
@@ -34,8 +35,10 @@ class Runner(object):
 
 class PythonRunner(Runner):
 
+    sourcefilename = '/tmp/source.py'
+
     def _run_command(self):
-        return ['/usr/bin/python3', self.sourcefile.name]
+        return ['/usr/bin/python3', self.sourcefilename]
 
 
 if __name__ == '__main__':
