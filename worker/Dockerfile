@@ -8,6 +8,7 @@ RUN pip3 install sh
 RUN pip3 install flake8
 RUN pip3 install pylint
 RUN pip3 install radon
+RUN apt-get install -y clang ruby nodejs golang
 RUN adduser --disabled-password --gecos '' worker && \
     adduser worker sudo && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
