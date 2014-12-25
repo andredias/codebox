@@ -6,6 +6,7 @@ import json
 
 TIMEOUT_EXIT_CODE = 124
 
+
 class Runner(object):
 
     '''
@@ -18,27 +19,32 @@ class Runner(object):
     ok_code = list(range(128))  # sh does not work with python3 range yet
 
     def __call__(self, job):
+        if not job['source']:
+            return {}
+        self.response = {}
         self.input = job.get('input', None)
         self.timeout = job.get('timeout', self._timeout)
         # save source to a temporary file for compiling and running it later
         with open(self.sourcefilename, mode='w', encoding='utf-8') as sourcefile:
             sourcefile.write(job['source'])
-        self.evaluate()
-        self.compile()
-        self.run()
-        return
+        if self.evaluate():
+            self.compile()
+            self.run()
+        return self.response
 
     def evaluate(self):
-        pass
+        return True
 
     def compile(self):
         command = self._compile_command()
         if command is None:
             return
         output = command('-o', self.execfilename, self.sourcefilename, _ok_code=self.ok_code)
-        if output is not None:
-            sys.stdout.write(output.stdout.decode('utf-8'))
-            sys.stderr.write(output.stderr.decode('utf-8'))
+        self.response['compilation'] = {
+            'stdout': output.stdout.decode('utf-8'),
+            'stderr': output.stderr.decode('utf-8'),
+            'exit_code': output.exit_code,
+        }
         return
 
     def _compile_command(self):
@@ -47,11 +53,14 @@ class Runner(object):
     def run(self):
         output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=self.input,
                             _ok_code=self.ok_code)
-        if output is not None:
-            sys.stdout.write(output.stdout.decode('utf-8'))
-            sys.stderr.write(output.stderr.decode('utf-8'))
-            if output.exit_code == TIMEOUT_EXIT_CODE:
-                sys.stderr.write('\nERROR: Running time limit exceeded %ss' % self.timeout)
+        timeout_msg = ''
+        if output.exit_code == TIMEOUT_EXIT_CODE:
+            timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
+        self.response['execution'] = {
+            'stdout': output.stdout.decode('utf-8'),
+            'stderr': output.stderr.decode('utf-8') + timeout_msg,
+            'exit_code': output.exit_code,
+        }
         return
 
     def _run_command(self):
@@ -119,9 +128,9 @@ languages = {
 if __name__ == '__main__':
     linhas = ''.join(sys.stdin.readlines())
     entrada = json.loads(linhas)
-    if not entrada.get('source', None):
-        sys.exit(0)
     if entrada['language'] not in languages:
         sys.exit('There is no Runner class for %s' % entrada['language'])
     runner = languages[entrada['language']]()
-    runner(entrada)
+    response = runner(entrada)
+    json.dump(response, sys.stdout)
+    sys.exit(0)
