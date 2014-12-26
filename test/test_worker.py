@@ -29,7 +29,8 @@ def run(source, _input=None, timeout=5, language='python'):
                         '-v', '%s:/home/worker:ro' % WORKER_DIR,
                         '--net', 'none',
                         IMAGE, _in=job_json, _ok_code=[0, 1])
-    return json.loads(output.stdout.decode('utf-8'))
+    return output.stderr.decode('utf-8') if output.stderr else \
+           json.loads(output.stdout.decode('utf-8'))
 
 
 class TestPythonRunner(object):
@@ -64,10 +65,7 @@ sys.stdout.write('Olá mundo!')'''
 
     def test_process_input(self):
         text = 'Hello\nWorld'
-        source = '''
-#!/usr/bin/python3
-
-import sys
+        source = '''import sys
 
 for line in sys.stdin.readlines():
     sys.stdout.write(line)
@@ -75,6 +73,7 @@ for line in sys.stdin.readlines():
         resp = run(source, text)
         assert resp['execution']['stdout'] == 'Hello\nWorld'
         assert resp['execution']['stderr'] == ''
+        assert resp['lint'] == []
 
     def test_process_timeout(self):
         source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
@@ -87,6 +86,42 @@ for line in sys.stdin.readlines():
         resp = run(source)
         assert resp['execution']['stdout'] == ''
         assert 'ping: unknown host www.google.com' in resp['execution']['stderr']
+
+    def test_evaluation(self):
+        source = '''import sys
+
+def outer(x):
+     def inner():
+            print(x)
+     return inner
+
+class someclass():
+
+    def wrongMethod():
+        aux = None
+        return
+'''
+        resp = run(source)
+        assert resp['execution']['stderr'] == ''
+        assert 'cyclomatic_complexity' not in resp
+        assert 'loc' in resp
+        assert 'halstead' in resp
+        assert [x[2] for x in resp['lint'] if len(x[2]) == 5]  # pylint error
+        assert [x[2] for x in resp['lint'] if len(x[2]) == 4]  # flake8 error
+
+    def test_syntax_error(self):
+        source = '''import sys
+  def outer(x):
+     def inner():
+            print x
+     return inner
+'''
+        resp = run(source)
+        assert 'IndentationError: unexpected indent' in resp['execution']['stderr']
+        assert 'cyclomatic_complexity' not in resp
+        assert 'loc' in resp
+        assert [x[2] for x in resp['lint'] if len(x[2]) == 5]  # pylint error
+        assert [x[2] for x in resp['lint'] if len(x[2]) == 4]  # flake8 error
 
 
 class TestCPPRunner(object):
