@@ -26,11 +26,12 @@ def run(source, _input=None, timeout=5, language='python'):
     job_json = json.dumps(job)
     output = docker.run('-i',
                         '--rm',
-                        '-v', '%s:/home/worker:ro' % WORKER_DIR,
+                        '-v', '%s:/codebox_1:ro' % WORKER_DIR,
+                        '--workdir', '/codebox_1',
                         '--net', 'none',
                         IMAGE, _in=job_json, _ok_code=[0, 1])
     return output.stderr.decode('utf-8') if output.stderr else \
-           json.loads(output.stdout.decode('utf-8'))
+        json.loads(output.stdout.decode('utf-8'))
 
 
 class TestPythonRunner(object):
@@ -122,6 +123,11 @@ class someclass():
         assert 'loc' in resp
         assert [x[2] for x in resp['lint'] if len(x[2]) == 5]  # pylint error
         assert [x[2] for x in resp['lint'] if len(x[2]) == 4]  # flake8 error
+
+    def test_access_to_codebox_dir(self):
+        source = 'import sh; print(sh.ls("/codebox"))'
+        resp = run(source)
+        assert 'cannot open directory /codebox: Permission denied' in resp['execution']['stderr']
 
 
 class TestCPPRunner(object):

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import re
 import sh
 import sys
@@ -53,8 +54,12 @@ class Runner(object):
         return None
 
     def run(self):
-        output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=self.input,
-                            _ok_code=self.ok_code)
+        os.setresuid(1000, 1000, 0)  # run as 'user'
+        try:
+            output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=self.input,
+                                _ok_code=self.ok_code)
+        finally:
+            os.setresuid(0, 0, 0)  # back to 'root'
         timeout_msg = ''
         if output.exit_code == TIMEOUT_EXIT_CODE:
             timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
@@ -93,7 +98,7 @@ class PythonRunner(Runner):
                            '--msg-template', '{msg_id}:{line}:{column}:{msg}',
                            self.sourcefilename,
                            _ok_code=self.ok_code
-                          ).stdout.decode('utf-8').strip().split('\n')
+        ).stdout.decode('utf-8').strip().split('\n')
         pattern = r'(?P<code>[A-Z]\d+):(?P<line>\d+):(?P<column>\d+):(?P<message>.*)$'
         lint = self.response['lint']
         for line in output:
@@ -134,7 +139,7 @@ class PythonRunner(Runner):
         try:
             self._pylint()
             self._flake8_lint()
-            sorted(self.response['lint'], key=lambda x:(int(x[0]), int(x[1])))
+            sorted(self.response['lint'], key=lambda x: (int(x[0]), int(x[1])))
             self._radon()
         except SyntaxError:
             pass
