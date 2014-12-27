@@ -11,7 +11,10 @@ RUN adduser --disabled-password --gecos '' --uid 1000 user
 
 ENV PYTHONIOENCODING utf-8
 
+WORKDIR /codebox/runner
+ADD runner/* /codebox/runner/
 WORKDIR /codebox
-ADD worker.py /codebox/
+ADD *.py /codebox/
+ADD flint++ /codebox/
 RUN chmod -R 700 /codebox
 ENTRYPOINT ["/usr/bin/python3", "worker.py"]
