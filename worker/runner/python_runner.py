@@ -3,6 +3,7 @@ import sh
 
 from .runner import Runner
 
+
 class PythonRunner(Runner):
 
     sourcefilename = '/tmp/source.py'
@@ -13,11 +14,13 @@ class PythonRunner(Runner):
         output = sh.flake8('--ignore', ignore,
                            '--max-line-length', max_line_length,
                            self.sourcefilename,
-                           _ok_code=self.ok_code
-                          ).stdout.decode('utf-8').strip().split('\n')
+                           _ok_code=self.ok_code).stdout.decode('utf-8').strip().split('\n')
         pattern = r'[\w|/]*:(?P<line>\d+):(?P<column>\d+):\s+(?P<code>[A-Z]\d+)\s+(?P<message>.*)$'
-        self.response['lint'] += [re.search(pattern, line).groups() for line in output
-                                  if re.search(pattern, line)]
+        lint = self.response['lint']
+        for line in output:
+            match = re.search(pattern, line)
+            if match:
+                lint += [(int(match.group('line')), match.group('code'), match.group('message'))]
         return
 
     def _pylint(self):
@@ -26,15 +29,13 @@ class PythonRunner(Runner):
                            '--reports', 'n',
                            '--msg-template', '{msg_id}:{line}:{column}:{msg}',
                            self.sourcefilename,
-                           _ok_code=self.ok_code
-        ).stdout.decode('utf-8').strip().split('\n')
+                           _ok_code=self.ok_code).stdout.decode('utf-8').strip().split('\n')
         pattern = r'(?P<code>[A-Z]\d+):(?P<line>\d+):(?P<column>\d+):(?P<message>.*)$'
         lint = self.response['lint']
         for line in output:
             match = re.search(pattern, line)
             if match:
-                lint += [(match.group('line'), match.group('column'), match.group('code'),
-                          match.group('message'))]
+                lint += [(int(match.group('line')), match.group('code'), match.group('message'))]
         return
 
     def _radon(self):
@@ -68,7 +69,7 @@ class PythonRunner(Runner):
         try:
             self._pylint()
             self._flake8_lint()
-            sorted(self.response['lint'], key=lambda x: (int(x[0]), int(x[1])))
+            # sorted(self.response['lint'], key=lambda x: (int(x[0]), int(x[1])))
             self._radon()
         except SyntaxError:
             pass

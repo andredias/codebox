@@ -107,8 +107,9 @@ class someclass():
         assert 'cyclomatic_complexity' not in resp
         assert 'loc' in resp
         assert 'halstead' in resp
-        assert [x[2] for x in resp['lint'] if len(x[2]) == 5]  # pylint error
-        assert [x[2] for x in resp['lint'] if len(x[2]) == 4]  # flake8 error
+        assert 'lint' in resp
+        assert [x[1] for x in resp['lint'] if len(x[1]) == 5]  # pylint error
+        assert [x[1] for x in resp['lint'] if len(x[1]) == 4]  # flake8 error
 
     def test_syntax_error(self):
         source = '''import sys
@@ -121,8 +122,8 @@ class someclass():
         assert 'IndentationError: unexpected indent' in resp['execution']['stderr']
         assert 'cyclomatic_complexity' not in resp
         assert 'loc' in resp
-        assert [x[2] for x in resp['lint'] if len(x[2]) == 5]  # pylint error
-        assert [x[2] for x in resp['lint'] if len(x[2]) == 4]  # flake8 error
+        assert [x[1] for x in resp['lint'] if len(x[1]) == 5]  # pylint error
+        assert [x[1] for x in resp['lint'] if len(x[1]) == 4]  # flake8 error
 
     def test_access_to_codebox_dir(self):
         source = 'import sh; print(sh.ls("/codebox"))'
