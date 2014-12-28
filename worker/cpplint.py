@@ -499,7 +499,7 @@ _line_length = 80
 
 # The allowed extensions for file names
 # This is set by --extensions flag.
-_valid_extensions = set(['cc', 'h', 'cpp', 'cu', 'cuh'])
+_valid_extensions = set(['cc', 'h', 'cpp', 'cu', 'cuh', 'c', 'hpp'])
 
 def ParseNolintSuppressions(filename, raw_line, linenum, error):
   """Updates the global list of error-suppressions.
@@ -1666,7 +1666,7 @@ def GetHeaderGuardCPPVariable(filename):
   filename = re.sub(r'/\.flymake/([^/]*)$', r'/\1', filename)
   # Replace 'c++' with 'cpp'.
   filename = filename.replace('C++', 'cpp').replace('c++', 'cpp')
-  
+
   fileinfo = FileInfo(filename)
   file_path_from_root = fileinfo.RepositoryName()
   if _root:
@@ -4375,7 +4375,7 @@ def CheckStyle(filename, clean_lines, linenum, file_extension, nesting_state,
   """Checks rules from the 'C++ style rules' section of cppguide.html.
 
   Most of these rules are hard to test (naming, comment style), but we
-  do what we can.  In particular we check for 2-space indents, line lengths,
+  do what we can.  In particular we check for 4-space indents, line lengths,
   tab usage, spaces inside code, etc.
 
   Args:
@@ -4399,7 +4399,7 @@ def CheckStyle(filename, clean_lines, linenum, file_extension, nesting_state,
           'Tab found; better to use spaces')
 
   # One or three blank spaces at the beginning of the line is weird; it's
-  # hard to reconcile that with 2-space indents.
+  # hard to reconcile that with 4-space indents.
   # NOTE: here are the conditions rob pike used for his tests.  Mine aren't
   # as sophisticated, but it may be worth becoming so:  RLENGTH==initial_spaces
   # if(RLENGTH > 20) complain = 0;
@@ -4427,7 +4427,7 @@ def CheckStyle(filename, clean_lines, linenum, file_extension, nesting_state,
              Match(r'^\s*""', line))):
     error(filename, linenum, 'whitespace/indent', 3,
           'Weird number of spaces at line-start.  '
-          'Are you using a 2-space indent?')
+          'Are you using a 4-space indent?')
 
   # Check if the line is a header guard.
   is_header_guard = False
@@ -4794,7 +4794,7 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension,
 
   # Make Windows paths like Unix.
   fullname = os.path.abspath(filename).replace('\\', '/')
-  
+
   # Perform other checks now that we are sure that this is not an include line
   CheckCasts(filename, clean_lines, linenum, error)
   CheckGlobalStatic(filename, clean_lines, linenum, error)
@@ -6034,7 +6034,7 @@ def ProcessFileData(filename, file_extension, lines, error,
   nesting_state.CheckCompletedBlocks(filename, error)
 
   CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error)
-  
+
   # Check that the .cc file has included its header if it exists.
   if file_extension == 'cc':
     CheckHeaderFileIncluded(filename, include_state, error)
