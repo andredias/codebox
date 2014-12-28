@@ -1,5 +1,7 @@
 import os
 import sh
+from lint import lint
+from metrics import collect_metrics
 
 TIMEOUT_EXIT_CODE = 124
 
@@ -30,7 +32,9 @@ class Runner(object):
         return self.response
 
     def evaluate(self):
-        pass
+        self.response['lint'] = lint(self.sourcefilename)
+        self.response.update(collect_metrics(self.sourcefilename))
+        return
 
     def compile(self):
         command = self._compile_command()
@@ -66,3 +70,51 @@ class Runner(object):
 
     def _run_command(self):
         return [self.execfilename]
+
+
+class PythonRunner(Runner):
+
+    sourcefilename = '/tmp/source.py'
+
+    def _run_command(self):
+        return ['/usr/bin/python3', self.sourcefilename]
+
+
+class CPPRunner(Runner):
+
+    sourcefilename = '/tmp/source.cpp'
+
+    def _compile_command(self):
+        return sh.Command('clang++')
+
+
+class CRunner(Runner):
+
+    sourcefilename = '/tmp/source.c'
+
+    def _compile_command(self):
+        return sh.clang
+
+
+class GoRunner(Runner):
+
+    sourcefilename = '/tmp/source.go'
+
+    def _compile_command(self):
+        return sh.go.build
+
+
+class JavascriptRunner(Runner):
+
+    sourcefilename = '/tmp/source.js'
+
+    def _run_command(self):
+        return ['nodejs', self.sourcefilename]
+
+
+class RubyRunner(Runner):
+
+    sourcefilename = '/tmp/source.rb'
+
+    def _run_command(self):
+        return ['ruby', self.sourcefilename]
