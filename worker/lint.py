@@ -6,6 +6,7 @@ from os.path import dirname, join, splitext
 
 ok_codes = list(range(128))
 
+
 def flake8(filename):
     ignore = 'F,N804,N805'
     max_line_length = 120
@@ -39,10 +40,10 @@ def pylint(filename):
 
 def cpplint(filename):
     linter = join(dirname(__file__), 'cpplint.py')
-    lint = sh.Command(linter)('--linelength', '120', '--filter=-legal', filename, _ok_code=ok_codes)
+    reports = sh.Command(linter)('--linelength', '120', '--filter=-legal', filename, _ok_code=ok_codes)
     pattern = r'^[\w\d\.\-_/]+:(?P<line>\d+):\s+(?P<msg>(?:(?!\s+\[).)+)\s+\[(?P<code>[\w\d/]+)'
     result = []
-    for line in lint.stderr.decode('utf-8').split('\n'):
+    for line in reports.stderr.decode('utf-8').split('\n'):
         match = re.findall(pattern, line)
         if match:
             match = match[0]
@@ -50,17 +51,45 @@ def cpplint(filename):
     return result
 
 
-def flintplusplus(filename):
+def flintplusplus(filename, c_flag=''):
     linter = join(dirname(__file__), 'flint++')
-    lint = sh.Command(linter)('-j', filename, _ok_code=ok_codes)
-    lint = json.loads(str(lint))
-    reports = lint['files'][0]['reports']
+    reports = sh.Command(linter)('-j', c_flag, filename, _ok_code=ok_codes)
+    reports = json.loads(str(reports))
+    reports = reports['files'][0]['reports']
     return [(r['line'], r['title'], r['desc'], r['level']) for r in reports]
+
+
+def rubocop(filename):
+    '''
+    RuboCop (https://github.com/bbatsov/rubocop) is a Ruby static code analyzer.
+    Out of the box it will enforce many of the guidelines outlined in
+    the community Ruby Style Guide (https://github.com/bbatsov/ruby-style-guide).
+
+    $ rubocop --format simple test.rb
+    == test.rb ==
+    C:  1:  1: Use snake_case for methods and variables.
+    C:  2:  3: Favor modifier if/unless usage when you have a single-line body. Another good alternative is the usage of control flow &&/||.
+    W:  4:  5: end at 4, 4 is not aligned with if at 2, 2
+
+    1 file inspected, 3 offenses detected
+    '''
+    reports = str(sh.rubocop('--format', 'simple', filename, _ok_code=ok_codes)).split('\n')
+    pattern = r'^(?P<code>\w):\s+(?P<line>\d+):\s+\d+:\s+(?P<message>.*)$'
+    result = []
+    for line in reports:
+        match = re.search(pattern, line)
+        if match:
+            result += [(match.group('line'), match.group('code'), match.group('message'))]
+    return result
 
 
 linters = {
     '.py': (flake8, pylint),
     '.cpp': (cpplint, flintplusplus),
+    '.hpp': (cpplint, flintplusplus),
+    '.c': (cpplint, lambda x: flintplusplus(x, c_flag='-c')),
+    '.h': (cpplint, lambda x: flintplusplus(x, c_flag='-c')),
+    '.rb': (rubocop, ),
 }
 
 

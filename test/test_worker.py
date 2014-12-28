@@ -202,6 +202,8 @@ int main() {
         assert resp['compilation']['stderr'] == ''
         assert resp['execution']['stdout'] == 'Hello, world!'
         assert resp['execution']['stderr'] == ''
+        assert 'lint' in resp
+        assert len(resp['lint']) == 1
 
 
 class TestRubyRunner(object):
@@ -211,6 +213,16 @@ class TestRubyRunner(object):
         resp = run(source, language='ruby')
         assert resp['execution']['stdout'] == 'Hello, world!\n'
         assert resp['execution']['stderr'] == ''
+
+    def test_lint(self):
+        source = '''def badName
+  if something
+    test
+    end
+end'''
+        resp = run(source, language='ruby')
+        assert 'lint' in resp
+        assert len(resp['lint']) >= 4
 
 
 class TestJavascriptRunner(object):
