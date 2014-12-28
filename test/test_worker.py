@@ -10,7 +10,7 @@ IMAGE = 'codebox'
 WORKER_DIR = abspath(join(dirname(__file__), '../worker'))
 
 
-def CreateDockerImage():
+def create_docker_image():
     images = str(docker.images())
     if re.search('\ncodebox\s', images) is None:
         docker.build('--tag', IMAGE, WORKER_DIR)
@@ -18,7 +18,7 @@ def CreateDockerImage():
 
 
 def setup():
-    CreateDockerImage()
+    create_docker_image()
 
 
 def run(source, _input=None, timeout=5, language='python'):
