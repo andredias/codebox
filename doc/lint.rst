@@ -15,8 +15,8 @@ C/C++
 =====
 
 * CLangFormat_
-
-.. _CLangFormat: http://clang.llvm.org/docs/ClangFormat.html
-
 * Flint++
 * cpplint.py
+
+.. _CLangFormat: http://clang.llvm.org/docs/ClangFormat.html
+.. _Flint++: https://github.com/L2Program/FlintPlusPlus

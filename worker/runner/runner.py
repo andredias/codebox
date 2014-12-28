@@ -1,9 +1,8 @@
 import os
 import sh
-import sys
-import json
 
 TIMEOUT_EXIT_CODE = 124
+
 
 class Runner(object):
 
@@ -27,8 +26,7 @@ class Runner(object):
         with open(self.sourcefilename, mode='w', encoding='utf-8') as sourcefile:
             sourcefile.write(job['source'])
         self.evaluate()
-        self.compile()
-        self.run()
+        self.compile() and self.run()
         return self.response
 
     def evaluate(self):
@@ -37,14 +35,14 @@ class Runner(object):
     def compile(self):
         command = self._compile_command()
         if command is None:
-            return
+            return True
         output = command('-o', self.execfilename, self.sourcefilename, _ok_code=self.ok_code)
         self.response['compilation'] = {
             'stdout': output.stdout.decode('utf-8'),
             'stderr': output.stderr.decode('utf-8'),
             'exit_code': output.exit_code,
         }
-        return
+        return output.exit_code == 0
 
     def _compile_command(self):
         return None

@@ -174,6 +174,20 @@ int main() {
         assert resp['execution']['stdout'] == 'Going to sleep...'
         assert 'ERROR: Running time limit exceeded' in resp['execution']['stderr']
 
+    def test_compilation_error(self):
+        source = '''#include <iostream>
+using std::cout;
+
+int main() {
+    string s;
+    return 0;
+}'''
+        resp = run(source, language='cpp')
+        assert 'execution' not in resp
+        assert 'lint' in resp
+        assert resp['compilation']['exit_code'] == 1
+        assert "unknown type name 'string'" in resp['compilation']['stderr']
+
 
 class TestCRunner(object):
 
