@@ -186,7 +186,7 @@ int main() {
         assert 'execution' not in resp
         assert 'lint' in resp
         assert resp['compilation']['exit_code'] == 1
-        assert "unknown type name 'string'" in resp['compilation']['stderr']
+        assert 'error' in resp['compilation']['stderr']
 
 
 class TestCRunner(object):

@@ -85,7 +85,7 @@ class CPPRunner(Runner):
     sourcefilename = '/tmp/source.cpp'
 
     def _compile_command(self):
-        return sh.Command('clang++')
+        return sh.Command('g++')
 
 
 class CRunner(Runner):
@@ -93,7 +93,7 @@ class CRunner(Runner):
     sourcefilename = '/tmp/source.c'
 
     def _compile_command(self):
-        return sh.clang
+        return sh.gcc
 
 
 class GoRunner(Runner):

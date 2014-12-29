@@ -11,8 +11,8 @@ RUN ln -s /usr/bin/nodejs /usr/bin/node  # http://stackoverflow.com/questions/26
 RUN pip3 install sh flake8 pep8-naming pylint radon
 RUN gem install rubocop
 RUN npm install -g sloc
+RUN npm install -g complexity-report
 
-RUN apt-get install -y clang
 RUN adduser --disabled-password --gecos '' --uid 1000 user
 
 ENV PYTHONIOENCODING utf-8
