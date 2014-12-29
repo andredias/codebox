@@ -1,3 +1,14 @@
+'''
+Several routines to collect metrics for different languages.
+The project escomplex provides a nice list of software metrics
+that should be obtained in other languages besides javascript.
+
+See: https://github.com/philbooth/escomplex/blob/master/README.md#metrics
+'''
+
+import sh
+import json
+
 from os.path import splitext
 
 
@@ -13,16 +24,15 @@ def radon(filename):
     '''
     from radon.cli import Config
     from radon.cli.harvest import CCHarvester, RawHarvester
+    from radon.complexity import SCORE
     from radon.metrics import h_visit
 
     config = Config(average=True, exclude=None, ignore=None, max='F', min='A', no_assert=True,
-                    order='SCORE', show_closures=True, show_complexity=True,
+                    order=SCORE, show_closures=True, show_complexity=True,
                     total_average=False)
     path = [filename]
     metrics = {}
-    cyclomatic_complexity = CCHarvester(path, config)._to_dicts()
-    if cyclomatic_complexity and 'error' not in cyclomatic_complexity[filename]:
-        metrics['cyclomatic_complexity'] = cyclomatic_complexity
+    metrics['cyclomatic_complexity'] = CCHarvester(path, config)._to_dicts()
     config = Config(exclude=None, ignore=None, summary=False)
     metrics['loc'] = dict(RawHarvester(path, config).results)
     with open(filename, encoding='utf-8') as f:
@@ -33,8 +43,25 @@ def radon(filename):
     return metrics
 
 
+def complexity_report(filename):
+    '''
+    Javascript
+    complexity-report (https://github.com/philbooth/complexity-report)
+    '''
+    report = json.loads(str(sh.cr('-t', '-f', 'json', filename)))
+    metrics = {}
+    sloc = report['reports'][0]['aggregate']['sloc']
+    metrics['loc'] = {
+        'sloc': sloc['logical'],
+        'loc': sloc['physical']
+    }
+    metrics['hastead'] = report['reports'][0]['aggregate']['halstead']
+    return metrics
+
+
 func = {
     '.py': radon,
+    '.js': complexity_report,
 }
 
 

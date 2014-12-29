@@ -104,7 +104,8 @@ class someclass():
 '''
         resp = run(source)
         assert resp['execution']['stderr'] == ''
-        assert 'cyclomatic_complexity' not in resp
+        assert 'cyclomatic_complexity' in resp
+        assert len(list(resp['cyclomatic_complexity'].values())[0]) == 3
         assert 'loc' in resp
         assert 'halstead' in resp
         assert 'lint' in resp
@@ -120,7 +121,7 @@ class someclass():
 '''
         resp = run(source)
         assert 'IndentationError: unexpected indent' in resp['execution']['stderr']
-        assert 'cyclomatic_complexity' not in resp
+        assert 'cyclomatic_complexity' in resp
         assert 'loc' in resp
         assert [x[1] for x in resp['lint'] if len(x[1]) == 5]  # pylint error
         assert [x[1] for x in resp['lint'] if len(x[1]) == 4]  # flake8 error
