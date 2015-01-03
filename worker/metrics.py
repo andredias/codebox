@@ -27,6 +27,25 @@ def radon(filename):
     from radon.complexity import SCORE
     from radon.metrics import h_visit
 
+    # ---
+    # gambiarra para Radon v1.1.1 ler corretamente arquivos UTF-8
+    from contextlib import contextmanager
+    import radon.cli.harvest
+    import io
+    import sys
+
+    @contextmanager
+    def _open(path):
+        if path == '-':
+            yield sys.stdin
+        else:
+            with io.open(path, encoding='utf-8') as f:
+                yield f
+
+    radon.cli.harvest._open = _open
+    # fim da gambiarra
+    # ---
+
     config = Config(average=True, exclude=None, ignore=None, max='F', min='A', no_assert=True,
                     order=SCORE, show_closures=True, show_complexity=True,
                     total_average=False)

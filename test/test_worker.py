@@ -131,6 +131,13 @@ class someclass():
         resp = run(source)
         assert 'cannot open directory /codebox: Permission denied' in resp['execution']['stderr']
 
+    def test_utf_8(self):
+        source = 'print("Olá, açúcar, lâmpada")'
+        resp = run(source)
+        assert resp['execution']['stdout'] == 'Olá, açúcar, lâmpada\n'
+        assert resp['execution']['stderr'] == ''
+        assert 'error' not in list(resp['loc'].values())[0].keys()
+
 
 class TestCPPRunner(object):
 
