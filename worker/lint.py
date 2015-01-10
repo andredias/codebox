@@ -1,3 +1,7 @@
+'''
+Line and column of lint messages should start at 1, not 0.
+'''
+
 import re
 import sh
 import json
@@ -18,7 +22,15 @@ def flake8(filename):
     for line in output:
         match = re.search(pattern, line)
         if match:
-            result += [(int(match.group('line')), match.group('code'), match.group('message'))]
+            result += [
+                {
+                'line': int(match.group('line')),
+                'column': int(match.group('column')),
+                'code': match.group('code'),
+                'message': match.group('message')
+                }
+            ]
+
     return result
 
 
@@ -34,7 +46,14 @@ def pylint(filename):
     for line in output:
         match = re.search(pattern, line)
         if match:
-            result += [(int(match.group('line')), match.group('code'), match.group('message'))]
+            result += [
+                {
+                'line': int(match.group('line')),
+                'column': int(match.group('column')) + 1,  # column should start at 1, not 0
+                'code': match.group('code'),
+                'message': match.group('message')
+                }
+            ]
     return result
 
 
@@ -47,7 +66,13 @@ def cpplint(filename):
         match = re.findall(pattern, line)
         if match:
             match = match[0]
-            result += [(int(match[0]), match[2], match[1])]
+            result += [
+                {
+                'line': int(match[0]),
+                'code': match[2],
+                'message': match[1],
+                }
+            ]
     return result
 
 
@@ -56,7 +81,9 @@ def flintplusplus(filename, c_flag=''):
     reports = sh.Command(linter)('-j', c_flag, filename, _ok_code=ok_codes)
     reports = json.loads(str(reports))
     reports = reports['files'][0]['reports']
-    return [(r['line'], r['title'], r['desc'], r['level']) for r in reports]
+    return [
+        {'line': r['line'], 'code': r['title'], 'message': r['desc'], 'level': r['level']}
+        for r in reports]
 
 
 def rubocop(filename):
@@ -74,12 +101,19 @@ def rubocop(filename):
     1 file inspected, 3 offenses detected
     '''
     reports = str(sh.rubocop('--format', 'simple', filename, _ok_code=ok_codes)).split('\n')
-    pattern = r'^(?P<code>\w):\s+(?P<line>\d+):\s+\d+:\s+(?P<message>.*)$'
+    pattern = r'^(?P<code>\w):\s+(?P<line>\d+):\s+(?P<column>\d+):\s+(?P<message>.*)$'
     result = []
     for line in reports:
         match = re.search(pattern, line)
         if match:
-            result += [(match.group('line'), match.group('code'), match.group('message'))]
+            result += [
+                {
+                'line': int(match.group('line')),
+                'column': int(match.group('column')),
+                'code': match.group('code'),
+                'message': match.group('message')
+                }
+            ]
     return result
 
 
@@ -101,4 +135,5 @@ def lint(filename):
             result += linter(filename)
         except:
             traceback.print_exc()
+    result.sort(key=lambda x:(x['line'], x.get('column', 0), x['code']))
     return result

@@ -7,6 +7,7 @@ from runner import CRunner, CPPRunner, GoRunner, JavascriptRunner, PythonRunner,
 languages = {
     'c': CRunner,
     'cpp': CPPRunner,
+    'c++': CPPRunner,
     'go': GoRunner,
     'javascript': JavascriptRunner,
     'python': PythonRunner,
