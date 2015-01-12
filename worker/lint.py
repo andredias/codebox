@@ -1,10 +1,19 @@
 '''
 Line and column of lint messages should start at 1, not 0.
+
+Each lint result should have the following fields:
+
+    * line: integer, starting at 1
+    * column: integer, starting at 1
+    * message: string
+    * level: 'error', 'warning' or 'info'.
+    * linter: name of the program used
 '''
 
 import re
 import sh
 import json
+import lint_messages as lm
 import traceback
 from os.path import dirname, join, splitext
 
@@ -27,11 +36,14 @@ def flake8(filename):
                 'line': int(match.group('line')),
                 'column': int(match.group('column')),
                 'code': match.group('code'),
-                'message': match.group('message')
+                'message': match.group('message'),
+                'level': lm.flake8.get(match.group('code'), 'info'),
+                'linter': 'flake8',
                 }
             ]
 
     return result
+
 
 
 def pylint(filename):
@@ -51,7 +63,9 @@ def pylint(filename):
                 'line': int(match.group('line')),
                 'column': int(match.group('column')) + 1,  # column should start at 1, not 0
                 'code': match.group('code'),
-                'message': match.group('message')
+                'message': match.group('message'),
+                'level': lm.pylint.get(match.group('code'), 'info'),
+                'linter': 'pylint',
                 }
             ]
     return result
@@ -71,6 +85,8 @@ def cpplint(filename):
                 'line': int(match[0]),
                 'code': match[2],
                 'message': match[1],
+                'level': lm.cpplint.get(match[2], 'info'),
+                'linter': 'cpplint',
                 }
             ]
     return result
@@ -82,7 +98,13 @@ def flintplusplus(filename, c_flag=''):
     reports = json.loads(str(reports))
     reports = reports['files'][0]['reports']
     return [
-        {'line': r['line'], 'code': r['title'], 'message': r['desc'], 'level': r['level']}
+        {
+        'line': r['line'],
+        'code': r['title'],
+        'message': r['desc'],
+        'level': r['level'],
+        'linter': 'flint++',
+        }
         for r in reports]
 
 
@@ -95,13 +117,14 @@ def rubocop(filename):
     $ rubocop --format simple test.rb
     == test.rb ==
     C:  1:  1: Use snake_case for methods and variables.
-    C:  2:  3: Favor modifier if/unless usage when you have a single-line body. Another good alternative is the usage of control flow &&/||.
+    C:  2:  3: Favor modifier if/unless usage when you have a single-line body...
     W:  4:  5: end at 4, 4 is not aligned with if at 2, 2
 
     1 file inspected, 3 offenses detected
     '''
     reports = str(sh.rubocop('--format', 'simple', filename, _ok_code=ok_codes)).split('\n')
     pattern = r'^(?P<code>\w):\s+(?P<line>\d+):\s+(?P<column>\d+):\s+(?P<message>.*)$'
+    code = {'R': 'Refactor', 'C': 'Convention', 'E': 'Error', 'F': 'Fatal', 'W': 'Warning'}
     result = []
     for line in reports:
         match = re.search(pattern, line)
@@ -110,8 +133,10 @@ def rubocop(filename):
                 {
                 'line': int(match.group('line')),
                 'column': int(match.group('column')),
-                'code': match.group('code'),
-                'message': match.group('message')
+                'code': code[match.group('code')],
+                'message': match.group('message'),
+                'level': lm.rubocop.get(match.group('code'), 'info'),
+                'linter': 'rubocop',
                 }
             ]
     return result
@@ -127,6 +152,8 @@ linters = {
 }
 
 
+# TODO: classify lint messages into type 'error', 'warning' or 'info'
+
 def lint(filename):
     extension = splitext(filename)[1]
     result = []
@@ -135,5 +162,5 @@ def lint(filename):
             result += linter(filename)
         except:
             traceback.print_exc()
-    result.sort(key=lambda x:(x['line'], x.get('column', 0), x['code']))
+    result.sort(key=lambda x: (x['line'], x.get('column', 0), x['code']))
     return result

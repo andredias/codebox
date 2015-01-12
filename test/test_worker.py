@@ -12,7 +12,7 @@ WORKER_DIR = abspath(join(dirname(__file__), '../worker'))
 
 def create_docker_image():
     images = str(docker.images())
-    if re.search('\ncodebox\s', images) is None:
+    if re.search(r'\ncodebox\s', images) is None:
         docker.build('--tag', IMAGE, WORKER_DIR)
     return
 

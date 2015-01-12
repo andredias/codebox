@@ -20,7 +20,7 @@ if __name__ == '__main__':
     entrada = json.loads(linhas)
     if entrada['language'] not in languages:
         sys.exit('There is no Runner class for %s' % entrada['language'])
-    runner = languages[entrada['language']]()
+    runner = languages[entrada['language'].lower()]()
     response = runner(entrada)
     json.dump(response, sys.stdout)
     sys.exit(0)
