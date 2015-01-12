@@ -1,89 +1,92 @@
+fatal = 'fatal'
 error = 'error'                         # something doesn't run
 warning = 'warning'                     # suspicious or could be optimized
-coding_style = suggestion = info = 'info'     # coding style violation etc.
+coding_style = 'convention'
+refactor = 'refactor'
+info = 'info'     # coding style violation etc.
 
 flake8 = {
-    'E1': coding_style,  #  Indentation
-    'E101': coding_style,  #  indentation contains mixed spaces and tabs
-    'E111': coding_style,  #  indentation is not a multiple of four
-    'E112': coding_style,  #  expected an indented block
-    'E113': coding_style,  #  unexpected indentation
-    'E114': coding_style,  #  indentation is not a multiple of four (comment)
-    'E115': coding_style,  #  expected an indented block (comment)
-    'E116': coding_style,  #  unexpected indentation (comment)
-    'E121': coding_style,  #  continuation line under-indented for hanging indent
-    'E122': coding_style,  #  continuation line missing indentation or outdented
-    'E123': coding_style,  #  closing bracket does not match indentation of opening bracket’s line
-    'E124': coding_style,  #  closing bracket does not match visual indentation
-    'E125': coding_style,  #  continuation line with same indent as next logical line
-    'E126': coding_style,  #  continuation line over-indented for hanging indent
-    'E127': coding_style,  #  continuation line over-indented for visual indent
-    'E128': coding_style,  #  continuation line under-indented for visual indent
-    'E129': coding_style,  #  visually indented line with same indent as next logical line
-    'E131': coding_style,  #  continuation line unaligned for hanging indent
-    'E133': coding_style,  #  closing bracket is missing indentation
-    'E2': coding_style,  #  Whitespace
-    'E201': coding_style,  #  whitespace after ‘(‘
-    'E202': coding_style,  #  whitespace before ‘)’
-    'E203': coding_style,  #  whitespace before ‘:’
-    'E211': coding_style,  #  whitespace before ‘(‘
-    'E221': coding_style,  #  multiple spaces before operator
-    'E222': coding_style,  #  multiple spaces after operator
-    'E223': coding_style,  #  tab before operator
-    'E224': coding_style,  #  tab after operator
-    'E225': coding_style,  #  missing whitespace around operator
-    'E226': coding_style,  #  missing whitespace around arithmetic operator
-    'E227': coding_style,  #  missing whitespace around bitwise or shift operator
-    'E228': coding_style,  #  missing whitespace around modulo operator
-    'E231': coding_style,  #  missing whitespace after ‘,’
-    'E241': coding_style,  #  multiple spaces after ‘,’
-    'E242': coding_style,  #  tab after ‘,’
-    'E251': coding_style,  #  unexpected spaces around keyword / parameter equals
-    'E261': coding_style,  #  at least two spaces before inline comment
-    'E262': coding_style,  #  inline comment should start with ‘# ‘
-    'E265': coding_style,  #  block comment should start with ‘# ‘
-    'E266': coding_style,  #  too many leading ‘#’ for block comment
-    'E271': coding_style,  #  multiple spaces after keyword
-    'E272': coding_style,  #  multiple spaces before keyword
-    'E273': coding_style,  #  tab after keyword
-    'E274': coding_style,  #  tab before keyword
-    'E3': coding_style,  #  Blank line
-    'E301': coding_style,  #  expected 1 blank line, found 0
-    'E302': coding_style,  #  expected 2 blank lines, found 0
-    'E303': coding_style,  #  too many blank lines (3)
-    'E304': coding_style,  #  blank lines found after function decorator
-    'E4': coding_style,  #  Import
-    'E401': coding_style,  #  multiple imports on one line
-    'E5': coding_style,  #  Line length
-    'E501': coding_style,  #  line too long (82 > 79 characters)
-    'E502': coding_style,  #  the backslash is redundant between brackets
-    'E7': coding_style,  #  Statement
-    'E701': coding_style,  #  multiple statements on one line (colon)
-    'E702': coding_style,  #  multiple statements on one line (semicolon)
-    'E703': coding_style,  #  statement ends with a semicolon
-    'E704': coding_style,  #  multiple statements on one line (def)
-    'E711': coding_style,  #  comparison to None should be ‘if cond is None:’
-    'E712': coding_style,  #  comparison to True should be ‘if cond is True:’ or ‘if cond:’
-    'E713': coding_style,  #  test for membership should be ‘not in’
-    'E714': coding_style,  #  test for object identity should be ‘is not’
-    'E721': coding_style,  #  do not compare types, use ‘isinstance()’
-    'E731': coding_style,  #  do not assign a lambda expression, use a def
-    'E9': error,  #  Runtime
-    'E901': error,  #  SyntaxError or IndentationError
-    'E902': error,  #  IOError
-    'W1': warning,  #  Indentation warning
-    'W191': warning,  #  indentation contains tabs
-    'W2': coding_style,  #  Whitespace warning
-    'W291': coding_style,  #  trailing whitespace
-    'W292': coding_style,  #  no newline at end of file
-    'W293': coding_style,  #  blank line contains whitespace
-    'W3': coding_style,  #  Blank line warning
-    'W391': coding_style,  #  blank line at end of file
-    'W6': warning,  #  Deprecation warning
-    'W601': warning,  #  has_key() is deprecated, use ‘in’
-    'W602': warning,  #  deprecated form of raising exception
-    'W603': warning,  #  ‘<>’ is deprecated, use ‘!=’
-    'W604': warning,  #  backticks are deprecated, use ‘repr()’
+    'E1': coding_style,  # Indentation
+    'E101': coding_style,  # indentation contains mixed spaces and tabs
+    'E111': coding_style,  # indentation is not a multiple of four
+    'E112': coding_style,  # expected an indented block
+    'E113': coding_style,  # unexpected indentation
+    'E114': coding_style,  # indentation is not a multiple of four (comment)
+    'E115': coding_style,  # expected an indented block (comment)
+    'E116': coding_style,  # unexpected indentation (comment)
+    'E121': coding_style,  # continuation line under-indented for hanging indent
+    'E122': coding_style,  # continuation line missing indentation or outdented
+    'E123': coding_style,  # closing bracket does not match indentation of opening bracket’s line
+    'E124': coding_style,  # closing bracket does not match visual indentation
+    'E125': coding_style,  # continuation line with same indent as next logical line
+    'E126': coding_style,  # continuation line over-indented for hanging indent
+    'E127': coding_style,  # continuation line over-indented for visual indent
+    'E128': coding_style,  # continuation line under-indented for visual indent
+    'E129': coding_style,  # visually indented line with same indent as next logical line
+    'E131': coding_style,  # continuation line unaligned for hanging indent
+    'E133': coding_style,  # closing bracket is missing indentation
+    'E2': coding_style,  # Whitespace
+    'E201': coding_style,  # whitespace after ‘(‘
+    'E202': coding_style,  # whitespace before ‘)’
+    'E203': coding_style,  # whitespace before ‘:’
+    'E211': coding_style,  # whitespace before ‘(‘
+    'E221': coding_style,  # multiple spaces before operator
+    'E222': coding_style,  # multiple spaces after operator
+    'E223': coding_style,  # tab before operator
+    'E224': coding_style,  # tab after operator
+    'E225': coding_style,  # missing whitespace around operator
+    'E226': coding_style,  # missing whitespace around arithmetic operator
+    'E227': coding_style,  # missing whitespace around bitwise or shift operator
+    'E228': coding_style,  # missing whitespace around modulo operator
+    'E231': coding_style,  # missing whitespace after ‘,’
+    'E241': coding_style,  # multiple spaces after ‘,’
+    'E242': coding_style,  # tab after ‘,’
+    'E251': coding_style,  # unexpected spaces around keyword / parameter equals
+    'E261': coding_style,  # at least two spaces before inline comment
+    'E262': coding_style,  # inline comment should start with ‘# ‘
+    'E265': coding_style,  # block comment should start with ‘# ‘
+    'E266': coding_style,  # too many leading ‘#’ for block comment
+    'E271': coding_style,  # multiple spaces after keyword
+    'E272': coding_style,  # multiple spaces before keyword
+    'E273': coding_style,  # tab after keyword
+    'E274': coding_style,  # tab before keyword
+    'E3': coding_style,  # Blank line
+    'E301': coding_style,  # expected 1 blank line, found 0
+    'E302': coding_style,  # expected 2 blank lines, found 0
+    'E303': coding_style,  # too many blank lines (3)
+    'E304': coding_style,  # blank lines found after function decorator
+    'E4': coding_style,  # Import
+    'E401': coding_style,  # multiple imports on one line
+    'E5': coding_style,  # Line length
+    'E501': coding_style,  # line too long (82 > 79 characters)
+    'E502': coding_style,  # the backslash is redundant between brackets
+    'E7': coding_style,  # Statement
+    'E701': coding_style,  # multiple statements on one line (colon)
+    'E702': coding_style,  # multiple statements on one line (semicolon)
+    'E703': coding_style,  # statement ends with a semicolon
+    'E704': coding_style,  # multiple statements on one line (def)
+    'E711': coding_style,  # comparison to None should be ‘if cond is None:’
+    'E712': coding_style,  # comparison to True should be ‘if cond is True:’ or ‘if cond:’
+    'E713': coding_style,  # test for membership should be ‘not in’
+    'E714': coding_style,  # test for object identity should be ‘is not’
+    'E721': coding_style,  # do not compare types, use ‘isinstance()’
+    'E731': coding_style,  # do not assign a lambda expression, use a def
+    'E9': error,  # Runtime
+    'E901': error,  # SyntaxError or IndentationError
+    'E902': error,  # IOError
+    'W1': warning,  # Indentation warning
+    'W191': warning,  # indentation contains tabs
+    'W2': coding_style,  # Whitespace warning
+    'W291': coding_style,  # trailing whitespace
+    'W292': coding_style,  # no newline at end of file
+    'W293': coding_style,  # blank line contains whitespace
+    'W3': coding_style,  # Blank line warning
+    'W391': coding_style,  # blank line at end of file
+    'W6': warning,  # Deprecation warning
+    'W601': warning,  # has_key() is deprecated, use ‘in’
+    'W602': warning,  # deprecated form of raising exception
+    'W603': warning,  # ‘<>’ is deprecated, use ‘!=’
+    'W604': warning,  # backticks are deprecated, use ‘repr()’
 }
 
 
@@ -97,14 +100,14 @@ pylint = {
     'C0203': coding_style,  # Metaclass method %s should have mcs as first argument
     'C0204': coding_style,  # Metaclass class method %s should have %s as first argument
     'C0301': coding_style,  # Line too long (%s/%s)
-    'C0302': suggestion,  # Too many lines in module (%s)
+    'C0302': refactor,  # Too many lines in module (%s)
     'C0303': coding_style,  # Trailing whitespace
     'C0304': coding_style,  # Final newline missing
     'C0321': coding_style,  # More than one statement on a single line
     'C0322': coding_style,  # Old: Operator not preceded by a space
     'C0323': coding_style,  # Old: Operator not followed by a space
     'C0324': coding_style,  # Old: Comma not followed by a space
-    'C0325': suggestion,  # Unnecessary parens after %r keyword
+    'C0325': refactor,  # Unnecessary parens after %r keyword
     'C0326': coding_style,  # %s space %s %s %s\n%s
     'C1001': warning,  # Old-style class defined.
     'E0001': error,  # (syntax error raised for a module; message varies)
@@ -165,15 +168,15 @@ pylint = {
     'E1305': error,  # Too many arguments for format string
     'E1306': error,  # Not enough arguments for format string
     'E1310': error,  # Suspicious argument in %s.%s call
-    'F0001': error,  # (error prevented analysis; message varies)
-    'F0002': error,  # %s: %s (message varies)
-    'F0003': error,  # ignored builtin module %s
-    'F0004': error,  # unexpected inferred value %s
-    'F0010': error,  # error while code parsing: %s
-    'F0202': error,  # Unable to check methods signature (%s / %s)
-    'F0220': error,  # failed to resolve interfaces implemented by %s (%s)
-    'F0321': error,  # Old: Format detection error in %r
-    'F0401': error,  # Unable to import %s
+    'F0001': fatal,  # (error prevented analysis; message varies)
+    'F0002': fatal,  # %s: %s (message varies)
+    'F0003': fatal,  # ignored builtin module %s
+    'F0004': fatal,  # unexpected inferred value %s
+    'F0010': fatal,  # error while code parsing: %s
+    'F0202': fatal,  # Unable to check methods signature (%s / %s)
+    'F0220': fatal,  # failed to resolve interfaces implemented by %s (%s)
+    'F0321': fatal,  # Old: Format detection error in %r
+    'F0401': fatal,  # Unable to import %s
     'I0001': warning,  # Unable to run raw checkers on built-in module %s
     'I0010': warning,  # Unable to consider inline option %r
     'I0011': warning,  # Locally disabling %s
@@ -183,41 +186,41 @@ pylint = {
     'I0020': warning,  # Suppressed %s (from line %d)
     'I0021': warning,  # Useless suppression of %s
     'I0022': warning,  # Deprecated pragma "pylint:disable-msg" or "pylint:enable-msg"
-    'R0201': suggestion,  # Method could be a function
+    'R0201': refactor,  # Method could be a function
     'R0401': warning,  # Cyclic import (%s)
     'R0801': info,  # Similar lines in %s files
-    'R0901': suggestion,  # Too many ancestors (%s/%s)
-    'R0902': suggestion,  # Too many instance attributes (%s/%s)
-    'R0903': suggestion,  # Too few public methods (%s/%s)
-    'R0904': suggestion,  # Too many public methods (%s/%s)
-    'R0911': suggestion,  # Too many return statements (%s/%s)
-    'R0912': suggestion,  # Too many branches (%s/%s)
-    'R0913': suggestion,  # Too many arguments (%s/%s)
-    'R0914': suggestion,  # Too many local variables (%s/%s)
-    'R0915': suggestion,  # Too many statements (%s/%s)
+    'R0901': refactor,  # Too many ancestors (%s/%s)
+    'R0902': refactor,  # Too many instance attributes (%s/%s)
+    'R0903': refactor,  # Too few public methods (%s/%s)
+    'R0904': refactor,  # Too many public methods (%s/%s)
+    'R0911': refactor,  # Too many return statements (%s/%s)
+    'R0912': refactor,  # Too many branches (%s/%s)
+    'R0913': refactor,  # Too many arguments (%s/%s)
+    'R0914': refactor,  # Too many local variables (%s/%s)
+    'R0915': refactor,  # Too many statements (%s/%s)
     'R0921': warning,  # Abstract class not referenced
     'R0922': info,  # Abstract class is only referenced %s times
     'R0923': warning,  # Interface not implemented
-    'RP0001': info,  #  Messages by category
-    'RP0002': info,  #  % errors / warnings by module
-    'RP0003': info,  #  Messages
-    'RP0004': info,  #  Global evaluation
-    'RP0101': info,  #  Statistics by type
-    'RP0401': info,  #  External dependencies
-    'RP0402': info,  #  Modules dependencies graph
-    'RP0701': info,  #  Raw metrics
-    'RP0801': info,  #  Duplication
+    'RP0001': info,  # Messages by category
+    'RP0002': info,  # % errors / warnings by module
+    'RP0003': info,  # Messages
+    'RP0004': info,  # Global evaluation
+    'RP0101': info,  # Statistics by type
+    'RP0401': info,  # External dependencies
+    'RP0402': info,  # Modules dependencies graph
+    'RP0701': info,  # Raw metrics
+    'RP0801': info,  # Duplication
     'W0101': warning,  # Unreachable code
     'W0102': warning,  # Dangerous default value %s as argument
     'W0104': warning,  # Statement seems to have no effect
-    'W0105': warning,  # String statement has no effect
-    'W0106': warning,  # Expression "%s" is assigned to nothing
-    'W0107': warning,  # Unnecessary pass statement
-    'W0108': warning,  # Lambda may not be necessary
+    'W0105': refactor,  # String statement has no effect
+    'W0106': refactor,  # Expression "%s" is assigned to nothing
+    'W0107': refactor,  # Unnecessary pass statement
+    'W0108': refactor,  # Lambda may not be necessary
     'W0109': warning,  # Duplicate key %r in dictionary
-    'W0110': warning,  # map/filter on lambda could be replaced by comprehension
+    'W0110': refactor,  # map/filter on lambda could be replaced by comprehension
     'W0120': warning,  # Else clause on loop without a break statement
-    'W0121': warning,  # Use raise ErrorClass(args) instead of raise ErrorClass, args.
+    'W0121': refactor,  # Use raise ErrorClass(args) instead of raise ErrorClass, args.
     'W0122': warning,  # Use of exec
     'W0141': warning,  # Used builtin function %r
     'W0142': warning,  # Used * or ** magic
@@ -233,12 +236,12 @@ pylint = {
     'W0232': warning,  # Class has no __init__ method
     'W0233': warning,  # __init__ method from a non direct base class %r is called
     'W0234': warning,  # iter returns non-iterator
-    'W0301': warning,  # Unnecessary semicolon
+    'W0301': refactor,  # Unnecessary semicolon
     'W0311': warning,  # Bad indentation. Found %s %s, expected %s
     'W0312': warning,  # Found indentation with %ss instead of %ss
-    'W0331': warning,  # Use of the <> operator
-    'W0332': warning,  # Use of "l" as long integer identifier
-    'W0333': warning,  # Use of the `` operator
+    'W0331': refactor,  # Use of the <> operator
+    'W0332': refactor,  # Use of "l" as long integer identifier
+    'W0333': refactor,  # Use of the `` operator
     'W0401': warning,  # Wildcard import %s
     'W0402': warning,  # Uses of a deprecated module %r
     'W0403': warning,  # Relative import %r, should be %r
@@ -251,10 +254,10 @@ pylint = {
     'W0602': warning,  # Using global for %r but no assigment is done
     'W0603': warning,  # Using the global statement
     'W0604': warning,  # Using the global statement at the module level
-    'W0611': warning,  # Unused import %s
-    'W0612': warning,  # Unused variable %r
-    'W0613': warning,  # Unused argument %r
-    'W0614': warning,  # Unused import %s from wildcard import
+    'W0611': refactor,  # Unused import %s
+    'W0612': refactor,  # Unused variable %r
+    'W0613': refactor,  # Unused argument %r
+    'W0614': refactor,  # Unused import %s from wildcard import
     'W0621': warning,  # Redefining name %r from outer scope (line %s)
     'W0622': warning,  # Redefining built-in %r
     'W0623': warning,  # Redefining name %r from %s in exception handler
@@ -263,13 +266,13 @@ pylint = {
     'W0633': warning,  # Attempting to unpack a non-sequence%s
     'W0701': warning,  # Raising a string exception
     'W0702': warning,  # No exception type(s) specified
-    'W0703': warning,  # Catching too general exception %s
+    'W0703': refactor,  # Catching too general exception %s
     'W0704': warning,  # Except doesn't do anything
     'W0710': warning,  # Exception doesn't inherit from standard "Exception" class
     'W0711': warning,  # Exception to catch is the result of a binary "%s" operation
     'W0712': warning,  # Implicit unpacking of exceptions is not supported in Python 3
     'W1001': warning,  # Use of "property" on an old style class
-    'W1111': warning,  # Assigning to function call which only returns None
+    'W1111': refactor,  # Assigning to function call which only returns None
     'W1201': warning,  # Specify string format arguments as logging function parameters
     'W1300': warning,  # Format string dictionary key should be a string, not %s
     'W1301': warning,  # Unused key %r in format string dictionary
@@ -346,7 +349,7 @@ cpplint = {
 }
 
 rubocop = {
-    'R': warning,  # Refactor
+    'R': refactor,  # Refactor
     'C': coding_style,  # Convention
     'E': error,  # Error
     'F': error,  # Fatal
