@@ -1,3 +1,4 @@
+import io
 import os
 import sh
 from lint import lint
@@ -15,7 +16,7 @@ class Runner(object):
     sourcefilename = '/tmp/sourcefile'
     execfilename = '/tmp/a.out'
     _timeout = 5
-    ok_code = list(range(128))  # sh does not work with python3 range yet
+    ok_code = range(128)
 
     def __call__(self, job):
         if not job['source']:
@@ -52,24 +53,25 @@ class Runner(object):
         return None
 
     def run(self):
+        timeout_msg = ''
+        stderr = io.StringIO()
+        stdout = io.StringIO()
         os.setresuid(1000, 1000, 0)  # run as 'user'
         try:
-            output = sh.timeout('--foreground', self.timeout, *self._run_command(), _in=self.input,
-                                _ok_code=self.ok_code)
+            self._run_command()(self.sourcefilename, _in=self.input, _timeout=self.timeout,
+                                _encoding='utf-8', _ok_code=self.ok_code, _out=stdout, _err=stderr)
+        except sh.TimeoutException:
+            timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
         finally:
             os.setresuid(0, 0, 0)  # back to 'root'
-        timeout_msg = ''
-        if output.exit_code == TIMEOUT_EXIT_CODE:
-            timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
         self.response['execution'] = {
-            'stdout': output.stdout.decode('utf-8'),
-            'stderr': output.stderr.decode('utf-8') + timeout_msg,
-            'exit_code': output.exit_code,
+            'stdout': stdout.getvalue(),
+            'stderr': stderr.getvalue() + timeout_msg,
         }
         return
 
     def _run_command(self):
-        return [self.execfilename]
+        return sh.Command(self.execfilename)
 
 
 class PythonRunner(Runner):
@@ -77,7 +79,7 @@ class PythonRunner(Runner):
     sourcefilename = '/tmp/source.py'
 
     def _run_command(self):
-        return ['/usr/bin/python3', self.sourcefilename]
+        return sh.python3
 
 
 class CPPRunner(Runner):
@@ -109,7 +111,7 @@ class JavascriptRunner(Runner):
     sourcefilename = '/tmp/source.js'
 
     def _run_command(self):
-        return ['nodejs', self.sourcefilename]
+        return sh.nodejs
 
 
 class RubyRunner(Runner):
@@ -117,4 +119,4 @@ class RubyRunner(Runner):
     sourcefilename = '/tmp/source.rb'
 
     def _run_command(self):
-        return ['ruby', self.sourcefilename]
+        return sh.ruby

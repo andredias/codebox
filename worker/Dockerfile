@@ -1,6 +1,7 @@
 FROM ubuntu:latest
 MAINTAINER André Felipe Dias <andref.dias@gmail.com>
 
+
 RUN apt-get update
 RUN apt-get install -y python3
 RUN apt-get install -y python3-pip
@@ -14,7 +15,9 @@ RUN npm install -g sloc
 RUN npm install -g complexity-report
 
 RUN adduser --disabled-password --gecos '' --uid 1000 user
-
+RUN locale-gen pt_BR.UTF-8
+ENV LANG pt_BR.UTF-8
+ENV LC_ALL pt_BR.UTF-8
 ENV PYTHONIOENCODING utf-8
 
 WORKDIR /codebox

@@ -64,7 +64,7 @@ sys.stdout.write('Olá mundo!')'''
         resp = run('')
         assert resp == {}
 
-    def test_process_input(self):
+    def test_input(self):
         text = 'Hello\nWorld'
         source = '''import sys
 
@@ -76,9 +76,21 @@ for line in sys.stdin.readlines():
         assert resp['execution']['stderr'] == ''
         assert resp['lint'] == []
 
-    def test_process_timeout(self):
+    def test_utf_8_input(self):
+        text = 'Olá\nAçúcar'
+        source = '''import sys
+
+for line in sys.stdin.readlines():
+    sys.stdout.write(line)
+'''
+        resp = run(source, text)
+        assert resp['execution']['stdout'] == 'Olá\nAçúcar'
+        assert resp['execution']['stderr'] == ''
+        assert resp['lint'] == []
+
+    def test_timeout(self):
         source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
-        resp = run(source, timeout=0.1)
+        resp = run(source, timeout=0.2)
         assert resp['execution']['stdout'] == 'Going to sleep...\n'
         assert 'ERROR: Running time limit exceeded' in resp['execution']['stderr']
 
@@ -105,7 +117,6 @@ class someclass():
         resp = run(source)
         assert resp['execution']['stderr'] == ''
         assert 'cyclomatic_complexity' in resp
-        assert len(list(resp['cyclomatic_complexity'].values())[0]) == 3
         assert 'loc' in resp
         assert 'halstead' in resp
         assert 'lint' in resp
@@ -162,7 +173,7 @@ int main() {
         resp = run('', language='cpp')
         assert resp == {}
 
-    def test_process_timeout(self):
+    def test_timeout(self):
         source = '''
 #include <iostream>
 using namespace std;
