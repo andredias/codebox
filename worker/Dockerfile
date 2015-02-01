@@ -23,5 +23,7 @@ ENV PYTHONIOENCODING utf-8
 WORKDIR /codebox
 ADD *.py /codebox/
 ADD flint++ /codebox/
+# ADD requirements.txt /codebox/
+# RUN pip3 install -r requirements.txt
 RUN chmod -R 700 /codebox
 ENTRYPOINT ["/usr/bin/python3", "worker.py"]
