@@ -6,13 +6,13 @@ import json
 from sh import docker
 from os.path import abspath, dirname, join
 
-IMAGE = 'codebox'
+IMAGE = 'codelab'
 WORKER_DIR = abspath(join(dirname(__file__), '../worker'))
 
 
 def create_docker_image():
     images = str(docker.images())
-    if re.search(r'\ncodebox\s', images) is None:
+    if re.search(r'\n%s\s' % IMAGE, images) is None:
         docker.build('--tag', IMAGE, WORKER_DIR)
     return
 
@@ -26,8 +26,8 @@ def run(source, _input=None, timeout=5, language='python'):
     job_json = json.dumps(job)
     output = docker.run('-i',
                         '--rm',
-                        '-v', '%s:/codebox_1:ro' % WORKER_DIR,
-                        '--workdir', '/codebox_1',
+                        '-v', '%s:/%s_1:ro' % (WORKER_DIR, IMAGE),
+                        '--workdir', '/%s_1' % IMAGE,
                         '--net', 'none',
                         IMAGE, _in=job_json, _ok_code=[0, 1])
     return output.stderr.decode('utf-8') if output.stderr else \
@@ -135,10 +135,10 @@ class someclass():
         assert 'loc' in resp
         assert len(resp['lint']) > 0
 
-    def test_access_to_codebox_dir(self):
-        source = 'import sh; print(sh.ls("/codebox"))'
+    def test_access_to_worker_dir(self):
+        source = 'import sh; print(sh.ls("/%s"))' % IMAGE
         resp = run(source)
-        assert 'cannot open directory /codebox: Permission denied' in resp['execution']['stderr']
+        assert ('cannot open directory /%s: Permission denied' % IMAGE) in resp['execution']['stderr']
 
     def test_utf_8(self):
         source = 'print("Olá, açúcar, lâmpada")'

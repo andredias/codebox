@@ -20,10 +20,10 @@ ENV LANG pt_BR.UTF-8
 ENV LC_ALL pt_BR.UTF-8
 ENV PYTHONIOENCODING utf-8
 
-WORKDIR /codebox
-ADD *.py /codebox/
-ADD flint++ /codebox/
-# ADD requirements.txt /codebox/
+WORKDIR /codelab
+ADD *.py /codelab/
+ADD flint++ /codelab/
+# ADD requirements.txt /codelab/
 # RUN pip3 install -r requirements.txt
-RUN chmod -R 700 /codebox
+RUN chmod -R 700 /codelab
 ENTRYPOINT ["/usr/bin/python3", "worker.py"]
