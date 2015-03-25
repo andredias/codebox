@@ -17,6 +17,7 @@ class Runner(object):
     execfilename = '/tmp/a.out'
     _timeout = 5
     ok_code = range(128)
+    command_options = []
 
     def __call__(self, job):
         if not job['source']:
@@ -58,7 +59,8 @@ class Runner(object):
         stdout = io.StringIO()
         os.setresuid(1000, 1000, 0)  # run as 'user'
         try:
-            self._run_command()(self.sourcefilename, _in=self.input, _timeout=self.timeout,
+            self.command_options.append(self.sourcefilename)
+            self._run_command()(*self.command_options, _in=self.input, _timeout=self.timeout,
                                 _encoding='utf-8', _ok_code=self.ok_code, _out=stdout, _err=stderr)
         except sh.TimeoutException:
             timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
@@ -120,3 +122,13 @@ class RubyRunner(Runner):
 
     def _run_command(self):
         return sh.ruby
+
+
+class SQLiteRunner(Runner):
+
+    sourcefilename = '/tmp/source.sql'
+
+    def _run_command(self):
+        self.input = self.job['source']
+        self.command_options = ['-echo', '-bail']
+        return sh.sqlite3

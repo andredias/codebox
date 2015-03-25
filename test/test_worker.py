@@ -6,7 +6,7 @@ import json
 from sh import docker
 from os.path import abspath, dirname, join
 
-IMAGE = 'codelab'
+IMAGE = 'codebox'
 WORKER_DIR = abspath(join(dirname(__file__), '../worker'))
 
 
@@ -266,3 +266,61 @@ func main() {
         assert resp['compilation']['stderr'] == ''
         assert resp['execution']['stdout'] == 'Hello, world!'
         assert resp['execution']['stderr'] == ''
+
+
+class TestSQLiteRunner(object):
+
+    def test_help(self):
+        source = '.help'
+        resp = run(source, language='sqlite')
+        assert len(resp['execution']['stderr']) > 20  # saída do .help é no stderr
+
+    def test_simple_db(self):
+        source = '''create table tbl1(one varchar(10), two smallint);
+insert into tbl1 values('hello!', 10);
+insert into tbl1 values('goodbye', 20);
+select * from tbl1;'''
+        resp = run(source, language='sqlite')
+        assert resp['execution']['stdout'] == source + '''
+hello!|10
+goodbye|20
+'''
+
+    def test_another_db(self):
+        source = '''.echo off
+
+create table department(
+    deptid integer primary key,
+    name varchar(20),
+    location varchar(10)
+);
+
+create table employee(
+    empid integer primary key,
+    name varchar(20),
+    title varchar(10)
+);
+
+insert into employee values(101,'John Smith','CEO');
+insert into employee values(102,'Raj Reddy','Sysadmin');
+insert into employee values(103,'Jason Bourne','Developer');
+insert into employee values(104,'Jane Smith','Sale Manager');
+insert into employee values(105,'Rita Patel','DBA');
+
+insert into department values(1,'Sales','Los Angeles');
+insert into department values(2,'Technology','San Jose');
+insert into department values(3,'Marketing','Los Angeles');
+
+select * from employee;
+select * from department;'''
+        resp = run(source, language='sqlite')
+        assert resp['execution']['stdout'] == '''.echo off
+101|John Smith|CEO
+102|Raj Reddy|Sysadmin
+103|Jason Bourne|Developer
+104|Jane Smith|Sale Manager
+105|Rita Patel|DBA
+1|Sales|Los Angeles
+2|Technology|San Jose
+3|Marketing|Los Angeles
+'''

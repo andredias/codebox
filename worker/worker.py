@@ -2,7 +2,10 @@
 
 import sys
 import json
-from runner import CRunner, CPPRunner, GoRunner, JavascriptRunner, PythonRunner, RubyRunner
+from runner import (
+    CRunner, CPPRunner, GoRunner, JavascriptRunner, PythonRunner, RubyRunner,
+    SQLiteRunner
+)
 
 languages = {
     'c': CRunner,
@@ -12,6 +15,8 @@ languages = {
     'javascript': JavascriptRunner,
     'python': PythonRunner,
     'ruby': RubyRunner,
+    'sqlite': SQLiteRunner,
+    'sql': SQLiteRunner,
 }
 
 

@@ -13,6 +13,7 @@ RUN pip3 install sh flake8 pep8-naming pylint radon
 RUN gem install rubocop
 RUN npm install -g sloc
 RUN npm install -g complexity-report
+RUN apt-get install sqlite3
 
 RUN adduser --disabled-password --gecos '' --uid 1000 user
 RUN locale-gen pt_BR.UTF-8
@@ -20,10 +21,10 @@ ENV LANG pt_BR.UTF-8
 ENV LC_ALL pt_BR.UTF-8
 ENV PYTHONIOENCODING utf-8
 
-WORKDIR /codelab
-ADD *.py /codelab/
-ADD flint++ /codelab/
-# ADD requirements.txt /codelab/
+WORKDIR /codebox
+ADD *.py /codebox/
+ADD flint++ /codebox/
+# ADD requirements.txt /codebox/
 # RUN pip3 install -r requirements.txt
-RUN chmod -R 700 /codelab
+RUN chmod -R 700 /codebox
 ENTRYPOINT ["/usr/bin/python3", "worker.py"]
