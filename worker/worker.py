@@ -4,7 +4,7 @@ import sys
 import json
 from runner import (
     CRunner, CPPRunner, GoRunner, JavascriptRunner, PythonRunner, RubyRunner,
-    SQLiteRunner
+    SQLiteRunner, BashRunner
 )
 
 languages = {
@@ -17,6 +17,8 @@ languages = {
     'ruby': RubyRunner,
     'sqlite': SQLiteRunner,
     'sql': SQLiteRunner,
+    'bash': BashRunner,
+    'sh': BashRunner,
 }
 
 

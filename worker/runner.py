@@ -132,3 +132,11 @@ class SQLiteRunner(Runner):
         self.input = self.job['source']
         self.command_options = ['-echo', '-bail']
         return sh.sqlite3
+
+
+class BashRunner(Runner):
+
+    sourcefilename = '/tmp/source.sh'
+
+    def _run_command(self):
+        return sh.bash

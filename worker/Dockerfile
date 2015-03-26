@@ -14,6 +14,9 @@ RUN gem install rubocop
 RUN npm install -g sloc
 RUN npm install -g complexity-report
 RUN apt-get install sqlite3
+RUN apt-get install -y git subversion
+RUN apt-get install -y python python-pip python-dev build-essential
+RUN pip install -U mercurial
 
 RUN adduser --disabled-password --gecos '' --uid 1000 user
 RUN locale-gen pt_BR.UTF-8

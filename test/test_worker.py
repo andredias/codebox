@@ -324,3 +324,31 @@ select * from department;'''
 2|Technology|San Jose
 3|Marketing|Los Angeles
 '''
+
+
+class TestBashRunner(object):
+
+    def test_bash_1(self):
+        source = "echo 'Olá mundo'"
+        resp = run(source, language='bash')
+        assert resp['execution']['stdout'] == 'Olá mundo\n'
+
+    def test_ps_ax(self):
+        source = 'ps ax | grep python'
+        resp = run(source, language='bash')
+        assert '/usr/bin/python3 worker.py' in resp['execution']['stdout']
+
+    def test_hg(self):
+        source = 'hg version'
+        resp = run(source, language='bash')
+        assert 'http://mercurial.selenic.com' in resp['execution']['stdout']
+
+    def test_git(self):
+        source = 'git version'
+        resp = run(source, language='bash')
+        assert source in resp['execution']['stdout']
+
+    def test_svn(self):
+        source = 'svn --version'
+        resp = run(source, language='bash')
+        assert 'http://subversion.apache.org/' in resp['execution']['stdout']
