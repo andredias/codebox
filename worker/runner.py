@@ -22,15 +22,19 @@ class Runner(object):
     def __call__(self, job):
         if not job['source']:
             return {}
-        self.job = job
-        self.response = {}
-        self.input = job.get('input', None)
-        self.timeout = job.get('timeout', self._timeout)
-        # save source to a temporary file for compiling and running it later
-        with open(self.sourcefilename, mode='w', encoding='utf-8') as sourcefile:
-            sourcefile.write(job['source'])
-        self.evaluate()
-        self.compile() and self.run()
+        os.setresuid(1000, 1000, 0)  # run as 'user'
+        try:
+            self.job = job
+            self.response = {}
+            self.input = job.get('input', None)
+            self.timeout = job.get('timeout', self._timeout)
+            # save source to a temporary file for compiling and running it later
+            with open(self.sourcefilename, mode='w', encoding='utf-8') as sourcefile:
+                sourcefile.write(job['source'])
+            self.evaluate()
+            self.compile() and self.run()
+        finally:
+            os.setresuid(0, 0, 0)  # back to 'root'
         return self.response
 
     def evaluate(self):
@@ -57,15 +61,12 @@ class Runner(object):
         timeout_msg = ''
         stderr = io.StringIO()
         stdout = io.StringIO()
-        os.setresuid(1000, 1000, 0)  # run as 'user'
         try:
             self.command_options.append(self.sourcefilename)
             self._run_command()(*self.command_options, _in=self.input, _timeout=self.timeout,
                                 _encoding='utf-8', _ok_code=self.ok_code, _out=stdout, _err=stderr)
         except sh.TimeoutException:
             timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
-        finally:
-            os.setresuid(0, 0, 0)  # back to 'root'
         self.response['execution'] = {
             'stdout': stdout.getvalue(),
             'stderr': stderr.getvalue() + timeout_msg,
