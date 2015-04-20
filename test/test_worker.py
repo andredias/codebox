@@ -281,15 +281,12 @@ insert into tbl1 values('hello!', 10);
 insert into tbl1 values('goodbye', 20);
 select * from tbl1;'''
         resp = run(source, language='sqlite')
-        assert resp['execution']['stdout'] == source + '''
-hello!|10
+        assert resp['execution']['stdout'] == '''hello!|10
 goodbye|20
 '''
 
     def test_another_db(self):
-        source = '''.echo off
-
-create table department(
+        source = '''create table department(
     deptid integer primary key,
     name varchar(20),
     location varchar(10)
@@ -314,8 +311,7 @@ insert into department values(3,'Marketing','Los Angeles');
 select * from employee;
 select * from department;'''
         resp = run(source, language='sqlite')
-        assert resp['execution']['stdout'] == '''.echo off
-101|John Smith|CEO
+        assert resp['execution']['stdout'] == '''101|John Smith|CEO
 102|Raj Reddy|Sysadmin
 103|Jason Bourne|Developer
 104|Jane Smith|Sale Manager

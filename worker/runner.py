@@ -130,7 +130,8 @@ class SQLiteRunner(Runner):
 
     def _run_command(self):
         self.input = self.job['source']
-        self.command_options = ['-echo', '-bail']
+        self.sourcefilename = '/tmp/database.db'
+        self.command_options = ['-bail']
         return sh.sqlite3
 
 
