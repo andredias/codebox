@@ -1,6 +1,8 @@
 import io
 import os
+import re
 import sh
+from tempfile import mkdtemp
 from lint import lint
 from metrics import collect_metrics
 
@@ -13,68 +15,72 @@ class Runner(object):
     Generic class to manage source code processing
     '''
 
-    sourcefilename = '/tmp/sourcefile'
-    execfilename = '/tmp/a.out'
-    _timeout = 5
     ok_code = range(128)
-    command_options = []
 
     def __call__(self, job):
-        if not job['source']:
+        '''
+        job = {'input': _input, 'sourcetree': {filename:source, ...}, 'commands': [command, command...]}
+        command = (phase, line, timeout)
+        '''
+
+        if 'sourcetree' not in job or not job['sourcetree']:
             return {}
+        self.job = job
+        self.response = {}
+        self.input = job.get('input')
         os.setresuid(1000, 1000, 0)  # run as 'user'
         try:
-            self.job = job
-            self.response = {}
-            self.input = job.get('input', None)
-            self.timeout = job.get('timeout', self._timeout)
-            # save source to a temporary file for compiling and running it later
-            with open(self.sourcefilename, mode='w', encoding='utf-8') as sourcefile:
-                sourcefile.write(job['source'])
-            self.evaluate()
-            self.compile() and self.run()
+            self.tempdir = mkdtemp()
+            os.chdir(self.tempdir)
+            self.save_sourcetree()
+            self.collect_metrics()
+            self.exec_commands()
         finally:
             os.setresuid(0, 0, 0)  # back to 'root'
         return self.response
 
-    def evaluate(self):
-        self.response['lint'] = lint(self.sourcefilename)
-        self.response.update(collect_metrics(self.sourcefilename))
+    def save_sourcetree(self):
+        '''
+        Save sources to a temporary directory
+        '''
+        for name, source in self.job['sourcetree'].items():
+            filename = os.path.join(self.tempdir, name)
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            with open(filename, mode='w', encoding='utf-8') as f:
+                f.write(source)
+
+    def collect_metrics(self):
+        self.result['lint'] = {}
+        self.result['metrics'] = {}
+        for filename in self.job['sourcetree'].keys():
+            tempfilename = os.path.join(self.tempdir, filename)
+            result = lint(tempfilename)
+            if result:
+                self.result['lint'][filename] = result
+            result = collect_metrics(tempfilename)
+            if result:
+                self.result['metrics'][filename] = result
         return
 
-    def compile(self):
-        command = self._compile_command()
-        if command is None:
-            return True
-        output = command('-o', self.execfilename, self.sourcefilename, _ok_code=self.ok_code)
-        self.response['compilation'] = {
-            'stdout': output.stdout.decode('utf-8'),
-            'stderr': output.stderr.decode('utf-8'),
-            'exit_code': output.exit_code,
-        }
-        return output.exit_code == 0
-
-    def _compile_command(self):
-        return None
-
-    def run(self):
-        timeout_msg = ''
-        stderr = io.StringIO()
-        stdout = io.StringIO()
-        try:
-            self.command_options.append(self.sourcefilename)
-            self._run_command()(*self.command_options, _in=self.input, _timeout=self.timeout,
-                                _encoding='utf-8', _ok_code=self.ok_code, _out=stdout, _err=stderr)
-        except sh.TimeoutException:
-            timeout_msg = '\nERROR: Running time limit exceeded %ss' % self.timeout
-        self.response['execution'] = {
-            'stdout': stdout.getvalue(),
-            'stderr': stderr.getvalue() + timeout_msg,
-        }
-        return
-
-    def _run_command(self):
-        return sh.Command(self.execfilename)
+    def exec_commands(self):
+        for phase, command, timeout in self.job['commands']:
+            command, *args = re.sub(r'\s+', ' ', command).split()  # *args não funciona no python2
+            command = sh.Command(command)
+            timeout_msg = ''
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            try:
+                output = command(*args, _in=self.input, _timeout=timeout, _encoding='utf-8',
+                                 _ok_code=self.ok_code, _out=stdout, _err=stderr)
+            except sh.TimeoutException:
+                timeout_msg = '\nERROR: Time limit exceeded %ss' % timeout
+            self.response[phase] = {
+                'stdout': stdout.getvalue(),
+                'stderr': stderr.getvalue() + timeout_msg,
+                'exit_code': output.exit_code,
+            }
+            if output.exit_code != 0:
+                break
 
 
 class PythonRunner(Runner):
