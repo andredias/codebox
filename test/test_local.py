@@ -200,3 +200,24 @@ for line in sys.stdin.readlines():
     assert 'lint' in result
     assert 'metrics' in result
     assert result['python']['stdout'] == 'Test\nRun'
+
+
+def test_run_nothing():
+    result = codebox.run()
+    assert result == {}
+
+
+def test_run_no_sourcetree():
+    result = codebox.run(commands=[('bash', 'echo test', TIMEOUT)])
+    assert result['bash']['stdout'] == 'test\n'
+
+
+def test_no_commands():
+    sourcetree = {
+        '__init__.py': '',
+        'test.py': '#!/usr/bin/python3',
+        'doc/index.rst': 'Title\n=====\n\nOne paragraph'
+    }
+    result = codebox.run(sourcetree)
+    assert 'lint' in result and 'test.py' in result['lint']
+    assert '__init__.py' in result['metrics']
