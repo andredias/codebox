@@ -13,8 +13,8 @@ Each lint result should have the following fields:
 import re
 import sh
 import json
-import lint_messages as lm
 import traceback
+from . import lint_messages as lm
 from os.path import dirname, join, splitext
 
 ok_codes = list(range(128))
@@ -33,17 +33,16 @@ def flake8(filename):
         if match:
             result += [
                 {
-                'line': int(match.group('line')),
-                'column': int(match.group('column')),
-                'code': match.group('code'),
-                'message': match.group('message'),
-                'level': lm.flake8.get(match.group('code'), 'info'),
-                'linter': 'flake8',
+                    'line': int(match.group('line')),
+                    'column': int(match.group('column')),
+                    'code': match.group('code'),
+                    'message': match.group('message'),
+                    'level': lm.flake8.get(match.group('code'), 'info'),
+                    'linter': 'flake8',
                 }
             ]
 
     return result
-
 
 
 def pylint(filename):
@@ -60,12 +59,12 @@ def pylint(filename):
         if match:
             result += [
                 {
-                'line': int(match.group('line')),
-                'column': int(match.group('column')) + 1,  # column should start at 1, not 0
-                'code': match.group('code'),
-                'message': match.group('message'),
-                'level': lm.pylint.get(match.group('code'), 'info'),
-                'linter': 'pylint',
+                    'line': int(match.group('line')),
+                    'column': int(match.group('column')) + 1,  # column should start at 1, not 0
+                    'code': match.group('code'),
+                    'message': match.group('message'),
+                    'level': lm.pylint.get(match.group('code'), 'info'),
+                    'linter': 'pylint',
                 }
             ]
     return result
@@ -82,11 +81,11 @@ def cpplint(filename):
             match = match[0]
             result += [
                 {
-                'line': int(match[0]),
-                'code': match[2],
-                'message': match[1],
-                'level': lm.cpplint.get(match[2], 'info'),
-                'linter': 'cpplint',
+                    'line': int(match[0]),
+                    'code': match[2],
+                    'message': match[1],
+                    'level': lm.cpplint.get(match[2], 'info'),
+                    'linter': 'cpplint',
                 }
             ]
     return result
@@ -99,11 +98,11 @@ def flintplusplus(filename, c_flag=''):
     reports = reports['files'][0]['reports']
     return [
         {
-        'line': r['line'],
-        'code': r['title'],
-        'message': r['desc'],
-        'level': r['level'],
-        'linter': 'flint++',
+            'line': r['line'],
+            'code': r['title'],
+            'message': r['desc'],
+            'level': r['level'],
+            'linter': 'flint++',
         }
         for r in reports]
 
@@ -131,12 +130,12 @@ def rubocop(filename):
         if match:
             result += [
                 {
-                'line': int(match.group('line')),
-                'column': int(match.group('column')),
-                'code': code[match.group('code')],
-                'message': match.group('message'),
-                'level': lm.rubocop.get(match.group('code'), 'info'),
-                'linter': 'rubocop',
+                    'line': int(match.group('line')),
+                    'column': int(match.group('column')),
+                    'code': code[match.group('code')],
+                    'message': match.group('message'),
+                    'level': lm.rubocop.get(match.group('code'), 'info'),
+                    'linter': 'rubocop',
                 }
             ]
     return result
