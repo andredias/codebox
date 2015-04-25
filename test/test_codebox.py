@@ -7,13 +7,14 @@ from sh import docker
 from os.path import abspath, dirname, join
 
 IMAGE = 'codebox'
-WORKER_DIR = abspath(join(dirname(__file__), '../worker'))
+CODEBOX_SOURCE_DIR = abspath(join(dirname(__file__), '../src'))
+TIMEOUT = 5
 
 
 def create_docker_image():
     images = str(docker.images())
     if re.search(r'\n%s\s' % IMAGE, images) is None:
-        docker.build('--tag', IMAGE, WORKER_DIR)
+        docker.build('--tag', IMAGE, CODEBOX_SOURCE_DIR)
     return
 
 
@@ -21,28 +22,39 @@ def setup():
     create_docker_image()
 
 
-def run(source, _input=None, timeout=5, language='python'):
-    job = {'input': _input, 'source': source, 'timeout': timeout, 'language': language}
+def run(sourcetree=None, commands=None, input_=''):
+    sourcetree = sourcetree or {}
+    commands = commands or []
+    job = {
+        'input': input_,
+        'sourcetree': sourcetree,
+        'commands': commands
+    }
     job_json = json.dumps(job)
     output = docker.run('-i',
                         '--rm',
-                        '-v', '%s:/%s_1:ro' % (WORKER_DIR, IMAGE),
+                        '-v', '%s:/%s_1:ro' % (CODEBOX_SOURCE_DIR, IMAGE),
                         '--workdir', '/%s_1' % IMAGE,
-                        '--net', 'none',
                         IMAGE, _in=job_json, _ok_code=[0, 1])
     return output.stderr.decode('utf-8') if output.stderr else \
         json.loads(output.stdout.decode('utf-8'))
 
 
-class TestPythonRunner(object):
+class TestPython(object):
+
+    filename = 'source.py'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [('execution', 'python3 %s' % self.filename, timeout)]
+        return run(sourcetree, commands, input_)
 
     def test_hello_world(self):
         '''
         Program supposed to run smoothly. But no input needed
         '''
         source = 'print("Hello, World!")'
-
-        resp = run(source)
+        resp = self.run(source)
         assert resp['execution']['stdout'].strip() == 'Hello, World!'
         assert resp['execution']['stderr'] == ''
 
@@ -53,15 +65,15 @@ class TestPythonRunner(object):
         source = '''import os
 
 sys.stdout.write('Olá mundo!')'''
-        resp = run(source)
+        resp = self.run(source)
         assert resp['execution']['stdout'] == ''
         assert "NameError: name 'sys' is not defined" in resp['execution']['stderr']
 
-    def test_empty_source(self):
+    def test_empty(self):
         '''
         Running a empty source
         '''
-        resp = run('')
+        resp = run()
         assert resp == {}
 
     def test_input(self):
@@ -71,10 +83,10 @@ sys.stdout.write('Olá mundo!')'''
 for line in sys.stdin.readlines():
     sys.stdout.write(line)
 '''
-        resp = run(source, text)
+        resp = self.run(source, text)
         assert resp['execution']['stdout'] == 'Hello\nWorld'
         assert resp['execution']['stderr'] == ''
-        assert resp['lint'] == []
+        assert resp['lint'] == {}
 
     def test_utf_8_input(self):
         text = 'Olá\nAçúcar'
@@ -83,22 +95,22 @@ for line in sys.stdin.readlines():
 for line in sys.stdin.readlines():
     sys.stdout.write(line)
 '''
-        resp = run(source, text)
+        resp = self.run(source, text)
         assert resp['execution']['stdout'] == 'Olá\nAçúcar'
         assert resp['execution']['stderr'] == ''
-        assert resp['lint'] == []
+        assert resp['lint'] == {}
 
     def test_timeout(self):
         source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
-        resp = run(source, timeout=0.2)
+        resp = self.run(source, timeout=0.3)
         assert resp['execution']['stdout'] == 'Going to sleep...\n'
-        assert 'ERROR: Running time limit exceeded' in resp['execution']['stderr']
+        assert 'ERROR: Time limit exceeded' in resp['execution']['stderr']
 
     def test_net_access(self):
-        source = 'from sh import ping\nprint(ping("www.google.com"))'
-        resp = run(source)
-        assert resp['execution']['stdout'] == ''
-        assert 'ping: unknown host www.google.com' in resp['execution']['stderr']
+        source = 'from sh import ping\nprint(ping("-c", "1", "www.google.com"))'
+        resp = self.run(source)
+        assert resp['execution']['stderr'] == ''
+        assert 'PING www.google.com (' in resp['execution']['stdout']
 
     def test_evaluation(self):
         source = '''import sys
@@ -114,13 +126,14 @@ class someclass():
         aux = None
         return
 '''
-        resp = run(source)
+        resp = self.run(source)
         assert resp['execution']['stderr'] == ''
-        assert 'cyclomatic_complexity' in resp
-        assert 'loc' in resp
-        assert 'halstead' in resp
-        assert 'lint' in resp
-        assert len(resp['lint']) > 10
+        assert 'source.py' in resp['lint']
+        assert 'source.py' in resp['metrics']
+        assert len(resp['lint']['source.py']) > 0
+        assert isinstance(resp['metrics']['source.py']['cyclomatic_complexity'], list)
+        assert len(resp['metrics']['source.py']['cyclomatic_complexity']) > 3
+        assert 'source.py' not in resp['metrics']['source.py']['loc']
 
     def test_syntax_error(self):
         source = '''import sys
@@ -129,26 +142,24 @@ class someclass():
             print x
      return inner
 '''
-        resp = run(source)
+        resp = self.run(source)
         assert 'IndentationError: unexpected indent' in resp['execution']['stderr']
-        assert 'cyclomatic_complexity' in resp
-        assert 'loc' in resp
-        assert len(resp['lint']) > 0
+        assert 'source.py' in resp['lint']
+        assert 'source.py' in resp['metrics']
 
     def test_access_to_worker_dir(self):
-        source = 'import sh; print(sh.ls("/%s"))' % IMAGE
-        resp = run(source)
+        source = 'import sh\n\nprint(sh.ls("-R", "/%s"))\n' % IMAGE
+        resp = self.run(source)
         assert ('cannot open directory /%s: Permission denied' % IMAGE) in resp['execution']['stderr']
 
     def test_utf_8(self):
         source = 'print("Olá, açúcar, lâmpada")'
-        resp = run(source)
+        resp = self.run(source)
         assert resp['execution']['stdout'] == 'Olá, açúcar, lâmpada\n'
         assert resp['execution']['stderr'] == ''
-        assert 'error' not in list(resp['loc'].values())[0].keys()
 
 
-class TestCPPRunner(object):
+class TestCPP(object):
 
     def test_hello_world(self):
         '''
@@ -206,7 +217,7 @@ int main() {
         assert 'error' in resp['compilation']['stderr']
 
 
-class TestCRunner(object):
+class TestC(object):
 
     def test_c_code(self):
         source = '''#include <stdio.h>
@@ -223,7 +234,7 @@ int main() {
         assert len(resp['lint']) == 1
 
 
-class TestRubyRunner(object):
+class TestRuby(object):
 
     def test_hello_world(self):
         source = 'puts "Hello, world!"'
@@ -242,7 +253,7 @@ end'''
         assert len(resp['lint']) >= 4
 
 
-class TestJavascriptRunner(object):
+class TestJavascript(object):
 
     def test_hello_world(self):
         source = "console.log('Hello, world!');"
@@ -251,7 +262,7 @@ class TestJavascriptRunner(object):
         assert resp['execution']['stderr'] == ''
 
 
-class TestGoRunner(object):
+class TestGo(object):
 
     def test_hello_world(self):
         source = '''package main
@@ -268,7 +279,7 @@ func main() {
         assert resp['execution']['stderr'] == ''
 
 
-class TestSQLiteRunner(object):
+class TestSQLite(object):
 
     def test_help(self):
         source = '.help'
@@ -322,7 +333,7 @@ select * from department;'''
 '''
 
 
-class TestBashRunner(object):
+class TestBash(object):
 
     def test_bash_1(self):
         source = "echo 'Olá mundo'"

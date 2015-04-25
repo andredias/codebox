@@ -2,7 +2,7 @@
 
 import shutil
 from os.path import exists, join
-from worker import codebox
+from src import codebox
 
 TIMEOUT = 0.1
 
@@ -30,15 +30,28 @@ def test_save_sourcetree():
 
 def test_evaluate():
     sourcetree = {
-        'hello.py': 'import sys\n\nprint("Hello, world!")',
+        'source.py': '''import sys
+
+def outer(x):
+     def inner():
+            print(x)
+     return inner
+
+class someclass():
+
+    def wrongMethod():
+        aux = None
+        return
+''',
     }
     tempdir = '/tmp/test_evaluate'
     save_sources(sourcetree, tempdir)
     result = codebox.evaluate(sourcetree, tempdir)
-    assert 'hello.py' in result['lint']
-    assert 'hello.py' in result['metrics']
-    assert len(result['lint']['hello.py']) > 0
-    assert len(result['metrics']['hello.py']) == 3
+    assert 'source.py' in result['lint']
+    assert 'source.py' in result['metrics']
+    assert len(result['lint']['source.py']) > 0
+    assert isinstance(result['metrics']['source.py']['cyclomatic_complexity'], list)
+    assert 'source.py' not in result['metrics']['source.py']['loc']
 
 
 def test_exec_command_1():
