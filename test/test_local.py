@@ -167,6 +167,19 @@ exit 1
     assert len(result) == 3
 
 
+def test_save_path_sep():
+    '''
+    Verifica se nomes de arquivos que começam com '/' estão sendo devidamente
+    tratados
+    '''
+    sourcetree = {
+        '/tmp/lixo.sh': 'echo "lixo"',
+    }
+    tempdir = '/tmp/test_save_path_sep'
+    save_sources(sourcetree, tempdir)
+    assert exists('/tmp/test_save_path_sep/tmp/lixo.sh')
+
+
 def test_run():
     text = 'Test\nRun'
     source = '''import sys
@@ -183,8 +196,7 @@ for line in sys.stdin.readlines():
         ('bash', 'echo hello wold', 0.1),
         ('python', 'python3 test.py', 0.1),
     ]
-    job = {'input': text, 'sourcetree': sourcetree, 'commands': commands}
-    result = codebox.run(job)
+    result = codebox.run(sourcetree, commands, input_=text)
     assert 'lint' in result
     assert 'metrics' in result
     assert result['python']['stdout'] == 'Test\nRun'

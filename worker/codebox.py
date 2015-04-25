@@ -14,15 +14,12 @@ from .metrics import collect_metrics
 TIMEOUT_EXIT_CODE = 124
 
 
-def run(job):
+def run(sourcetree=None, commands=None, input_=None):
     '''
-    job = {'input': _input,
-           'sourcetree': {filename:source, ...},
-           'commands': [command, command...]}
-    command = (phase, line, timeout)
+    commands = [(phase, line, timeout), ...]
     '''
-
-    job = job
+    sourcetree = sourcetree or {}
+    commands = commands or []
     response = {}
     ruid, euid, suid = os.getresuid()
     is_root = ruid == 0
@@ -31,9 +28,10 @@ def run(job):
     try:
         tempdir = mkdtemp()
         os.chdir(tempdir)
-        save_sourcetree(job['sourcetree'], tempdir)
-        response.update(evaluate(job['sourcetree'].keys(), tempdir))
-        response.update(exec_commands(job.get('commands', []), job.get('input'), tempdir))
+        if sourcetree:
+            save_sourcetree(sourcetree)
+            response.update(evaluate(sourcetree.keys()))
+        response.update(exec_commands(commands, input_))
         shutil.rmtree(tempdir)
     finally:
         if is_root:
@@ -46,8 +44,10 @@ def save_sourcetree(sourcetree, destdir=''):
     Save sources to a temporary directory
     '''
     for name, source in sourcetree.items():
-        filename = os.path.join(destdir, name)
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        filename = os.path.join(destdir, name.lstrip(os.path.sep))
+        directory = os.path.dirname(filename)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
         with open(filename, mode='w', encoding='utf-8') as f:
             f.write(source)
 
