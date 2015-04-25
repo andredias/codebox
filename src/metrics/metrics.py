@@ -33,8 +33,12 @@ def radon(filename):
     path = [filename]
     metrics = {}
     metrics['cyclomatic_complexity'] = CCHarvester(path, config)._to_dicts()
+    if metrics['cyclomatic_complexity']:
+        metrics['cyclomatic_complexity'] = metrics['cyclomatic_complexity'][filename]
     config = Config(exclude=None, ignore=None, summary=False)
     metrics['loc'] = dict(RawHarvester(path, config).results)
+    if metrics['loc']:
+        metrics['loc'] = metrics['loc'][filename]
     with open(filename, encoding='utf-8') as f:
         try:
             metrics['halstead'] = h_visit(f.read())._asdict()

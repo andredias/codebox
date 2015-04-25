@@ -8,8 +8,8 @@ import shutil
 import sys
 import json
 from tempfile import mkdtemp
-from .lint import lint
-from .metrics import collect_metrics
+from metrics.lint import lint
+from metrics.metrics import collect_metrics
 
 TIMEOUT_EXIT_CODE = 124
 
@@ -98,6 +98,6 @@ def exec_commands(commands, input_=None, ref_dir=''):
 if __name__ == '__main__':
     linhas = ''.join(sys.stdin.readlines())
     job = json.loads(linhas)
-    response = run(job)
+    response = run(job.get('sourcetree'), job.get('commands'), job.get('input'))
     json.dump(response, sys.stdout)
     sys.exit(0)

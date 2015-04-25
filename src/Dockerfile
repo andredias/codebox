@@ -1,5 +1,5 @@
 FROM ubuntu:latest
-MAINTAINER André Felipe Dias <andref.dias@gmail.com>
+MAINTAINER André Felipe Dias <andre.dias@pronus.io>
 
 
 RUN apt-get update
@@ -26,8 +26,8 @@ ENV PYTHONIOENCODING utf-8
 
 WORKDIR /codebox
 ADD *.py /codebox/
-ADD flint++ /codebox/
+ADD metrics /codebox/metrics/
 # ADD requirements.txt /codebox/
 # RUN pip3 install -r requirements.txt
 RUN chmod -R 700 /codebox
-ENTRYPOINT ["/usr/bin/python3", "worker.py"]
+ENTRYPOINT ["/usr/bin/python3", "codebox.py"]
