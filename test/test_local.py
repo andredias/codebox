@@ -180,6 +180,18 @@ exit 1
     assert len(result) == 3
 
 
+def test_command_not_found():
+    commands = [
+        ('1', 'ls -l -h -a /srv', TIMEOUT),
+        ('2', 'echo abcd', TIMEOUT),
+        ('3', 'alksajkjalja', TIMEOUT),
+        ('4', 'echo nothing', TIMEOUT),
+    ]
+    result = codebox.exec_commands(commands)
+    assert len(result) == 3
+    assert 'Command not found' in result['3']['stderr']
+
+
 def test_save_path_sep():
     '''
     Verifica se nomes de arquivos que começam com '/' estão sendo devidamente

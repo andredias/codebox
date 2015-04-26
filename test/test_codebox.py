@@ -161,6 +161,16 @@ class someclass():
 
 class TestCPP(object):
 
+    filename = 'source.cpp'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [
+            ('build', 'g++ %s' % self.filename, timeout),
+            ('run', './a.out', timeout)
+        ]
+        return run(sourcetree, commands, input_)
+
     def test_hello_world(self):
         '''
         Program supposed to run smoothly. But no input needed
@@ -172,17 +182,16 @@ int main() {
     cout << "Hello, world!";
     return 0;
 }'''
-
-        resp = run(source, language='cpp')
-        assert resp['execution']['stdout'] == 'Hello, world!'
-        assert resp['execution']['stderr'] == ''
+        resp = self.run(source)
+        assert resp['run']['stdout'] == 'Hello, world!'
+        assert resp['run']['stderr'] == ''
 
     def test_empty_source(self):
         '''
         Running a empty source
         '''
-        resp = run('', language='cpp')
-        assert resp == {}
+        resp = self.run('')
+        assert resp['build']['exit_code'] != 0
 
     def test_timeout(self):
         source = '''
@@ -196,11 +205,11 @@ int main() {
     cout << "overslept!";
     return 0;
 }'''
-        resp = run(source, timeout=0.1, language='cpp')
-        assert resp['compilation']['stdout'] == ''
-        assert resp['compilation']['stderr'] == ''
-        assert resp['execution']['stdout'] == 'Going to sleep...'
-        assert 'ERROR: Running time limit exceeded' in resp['execution']['stderr']
+        resp = self.run(source, timeout=0.3)
+        assert resp['build']['stdout'] == ''
+        assert resp['build']['stderr'] == ''
+        assert resp['run']['stdout'] == 'Going to sleep...'
+        assert 'ERROR: Time limit exceeded' in resp['run']['stderr']
 
     def test_compilation_error(self):
         source = '''#include <iostream>
@@ -210,14 +219,24 @@ int main() {
     string s;
     return 0;
 }'''
-        resp = run(source, language='cpp')
-        assert 'execution' not in resp
+        resp = self.run(source)
+        assert 'run' not in resp
         assert 'lint' in resp
-        assert resp['compilation']['exit_code'] == 1
-        assert 'error' in resp['compilation']['stderr']
+        assert resp['build']['exit_code'] == 1
+        assert 'error' in resp['build']['stderr']
 
 
 class TestC(object):
+
+    filename = 'source.c'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [
+            ('build', 'gcc %s' % self.filename, timeout),
+            ('run', './a.out', timeout)
+        ]
+        return run(sourcetree, commands, input_)
 
     def test_c_code(self):
         source = '''#include <stdio.h>
@@ -225,20 +244,27 @@ class TestC(object):
 int main() {
     printf("Hello, world!");
 }'''
-        resp = run(source, language='c')
-        assert resp['compilation']['stdout'] == ''
-        assert resp['compilation']['stderr'] == ''
-        assert resp['execution']['stdout'] == 'Hello, world!'
-        assert resp['execution']['stderr'] == ''
+        resp = self.run(source)
+        assert resp['build']['stdout'] == ''
+        assert resp['build']['stderr'] == ''
+        assert resp['run']['stdout'] == 'Hello, world!'
+        assert resp['run']['stderr'] == ''
         assert 'lint' in resp
-        assert len(resp['lint']) == 1
+        assert len(resp['lint'][self.filename]) == 1
 
 
 class TestRuby(object):
 
+    filename = 'source.rb'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [('execution', 'ruby %s' % self.filename, timeout)]
+        return run(sourcetree, commands, input_)
+
     def test_hello_world(self):
         source = 'puts "Hello, world!"'
-        resp = run(source, language='ruby')
+        resp = self.run(source)
         assert resp['execution']['stdout'] == 'Hello, world!\n'
         assert resp['execution']['stderr'] == ''
 
@@ -248,21 +274,38 @@ class TestRuby(object):
     test
     end
 end'''
-        resp = run(source, language='ruby')
+        resp = self.run(source)
         assert 'lint' in resp
-        assert len(resp['lint']) >= 4
+        assert len(resp['lint'][self.filename]) >= 4
 
 
 class TestJavascript(object):
 
+    filename = 'source.js'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [('execution', 'nodejs %s' % self.filename, timeout)]
+        return run(sourcetree, commands, input_)
+
     def test_hello_world(self):
         source = "console.log('Hello, world!');"
-        resp = run(source, language='javascript')
+        resp = self.run(source)
         assert resp['execution']['stdout'] == 'Hello, world!\n'
         assert resp['execution']['stderr'] == ''
 
 
 class TestGo(object):
+
+    filename = 'source.go'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [
+            ('build', 'go build -o a.out %s' % self.filename, timeout),
+            ('run', './a.out', timeout)
+        ]
+        return run(sourcetree, commands, input_)
 
     def test_hello_world(self):
         source = '''package main
@@ -272,27 +315,35 @@ import "fmt"
 func main() {
     fmt.Print("Hello, world!")
 }'''
-        resp = run(source, language='go')
-        assert resp['compilation']['stdout'] == ''
-        assert resp['compilation']['stderr'] == ''
-        assert resp['execution']['stdout'] == 'Hello, world!'
-        assert resp['execution']['stderr'] == ''
+        resp = self.run(source)
+        assert resp['build']['stdout'] == ''
+        assert resp['build']['stderr'] == ''
+        assert resp['run']['stdout'] == 'Hello, world!'
+        assert resp['run']['stderr'] == ''
 
 
 class TestSQLite(object):
 
+    filename = 'database.db'
+
+    def run(self, source, timeout=TIMEOUT):
+        commands = [
+            ('run', 'sqlite3 -bail %s' % self.filename, timeout)
+        ]
+        return run(commands=commands, input_=source)
+
     def test_help(self):
         source = '.help'
-        resp = run(source, language='sqlite')
-        assert len(resp['execution']['stderr']) > 20  # saída do .help é no stderr
+        resp = self.run(source)
+        assert len(resp['run']['stderr']) > 20  # saída do .help é no stderr
 
     def test_simple_db(self):
         source = '''create table tbl1(one varchar(10), two smallint);
 insert into tbl1 values('hello!', 10);
 insert into tbl1 values('goodbye', 20);
 select * from tbl1;'''
-        resp = run(source, language='sqlite')
-        assert resp['execution']['stdout'] == '''hello!|10
+        resp = self.run(source)
+        assert resp['run']['stdout'] == '''hello!|10
 goodbye|20
 '''
 
@@ -321,8 +372,8 @@ insert into department values(3,'Marketing','Los Angeles');
 
 select * from employee;
 select * from department;'''
-        resp = run(source, language='sqlite')
-        assert resp['execution']['stdout'] == '''101|John Smith|CEO
+        resp = self.run(source)
+        assert resp['run']['stdout'] == '''101|John Smith|CEO
 102|Raj Reddy|Sysadmin
 103|Jason Bourne|Developer
 104|Jane Smith|Sale Manager
@@ -335,27 +386,34 @@ select * from department;'''
 
 class TestBash(object):
 
+    filename = 'source.sh'
+
+    def run(self, source, input_=None, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
+        commands = [('run', 'bash %s' % self.filename, timeout)]
+        return run(sourcetree, commands, input_)
+
     def test_bash_1(self):
         source = "echo 'Olá mundo'"
-        resp = run(source, language='bash')
-        assert resp['execution']['stdout'] == 'Olá mundo\n'
+        resp = self.run(source)
+        assert resp['run']['stdout'] == 'Olá mundo\n'
 
     def test_ps_ax(self):
         source = 'ps ax | grep python'
-        resp = run(source, language='bash')
-        assert '/usr/bin/python3 worker.py' in resp['execution']['stdout']
+        resp = self.run(source)
+        assert '/usr/bin/python3 codebox.py' in resp['run']['stdout']
 
     def test_hg(self):
         source = 'hg version'
-        resp = run(source, language='bash')
-        assert 'http://mercurial.selenic.com' in resp['execution']['stdout']
+        resp = self.run(source)
+        assert 'http://mercurial.selenic.com' in resp['run']['stdout']
 
     def test_git(self):
         source = 'git version'
-        resp = run(source, language='bash')
-        assert source in resp['execution']['stdout']
+        resp = self.run(source)
+        assert source in resp['run']['stdout']
 
     def test_svn(self):
         source = 'svn --version'
-        resp = run(source, language='bash')
-        assert 'http://subversion.apache.org/' in resp['execution']['stdout']
+        resp = self.run(source)
+        assert 'http://subversion.apache.org/' in resp['run']['stdout']

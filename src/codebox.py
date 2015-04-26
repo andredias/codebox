@@ -7,6 +7,7 @@ import sh
 import shutil
 import sys
 import json
+import traceback
 from tempfile import mkdtemp
 from metrics.lint import lint
 from metrics.metrics import collect_metrics
@@ -75,7 +76,15 @@ def exec_commands(commands, input_=None, ref_dir=''):
     exit_code = 0
     for phase, command, timeout in commands:
         command, *args = re.sub(r'\s+', ' ', command).split()  # *args não funciona no python2
-        command = sh.Command(command)
+        try:
+            command = sh.Command(command)
+        except sh.CommandNotFound:
+            response[phase] = {
+                'stdout': '',
+                'stderr': 'Command not found: %s' % command,
+                'exit_code': 1,
+            }
+            break
         timeout_msg = ''
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -85,6 +94,7 @@ def exec_commands(commands, input_=None, ref_dir=''):
             exit_code = output.exit_code
         except sh.TimeoutException:
             timeout_msg = '\nERROR: Time limit exceeded %ss' % timeout
+            exit_code = 1
         response[phase] = {
             'stdout': stdout.getvalue(),
             'stderr': stderr.getvalue() + timeout_msg,
