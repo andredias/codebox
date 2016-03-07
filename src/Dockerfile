@@ -1,21 +1,22 @@
 FROM ubuntu:latest
 MAINTAINER André Felipe Dias <andre.dias@pronus.io>
 
-
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:git-core/ppa && \
+    add-apt-repository -y ppa:dominik-stadler/subversion-1.8
 RUN apt-get update
-RUN apt-get install -y python3
-RUN apt-get install -y python3-pip
-RUN apt-get install -y ruby nodejs npm golang
-RUN ln -s /usr/bin/nodejs /usr/bin/node  # http://stackoverflow.com/questions/26320901/cannot-install-nodejs-usr-bin-env-node-no-such-file-or-directory
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip \
+    ruby nodejs npm golang sqlite3 git subversion python python-pip python-dev build-essential
+
+# http://stackoverflow.com/questions/26320901/cannot-install-nodejs-usr-bin-env-node-no-such-file-or-directory
+RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 # pacotes
 RUN pip3 install sh flake8 pep8-naming pylint radon
 RUN gem install rubocop
 RUN npm install -g sloc
 RUN npm install -g complexity-report
-RUN apt-get install sqlite3
-RUN apt-get install -y git subversion
-RUN apt-get install -y python python-pip python-dev build-essential
 RUN pip install -U mercurial
 
 RUN adduser --disabled-password --gecos '' --uid 1000 user
