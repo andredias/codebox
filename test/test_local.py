@@ -159,7 +159,7 @@ def test_timeout():
     save_sources(sourcetree, tempdir)
     command = [('timeout', 'python3 timeout.py', TIMEOUT)]
     resp = codebox.exec_commands(command, ref_dir=tempdir)
-    assert resp['timeout']['stdout'] == 'Going to sleep...\n'
+    assert resp['timeout']['stdout'] == ''
     assert 'ERROR: Time limit exceeded' in resp['timeout']['stderr']
 
 

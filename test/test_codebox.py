@@ -3,7 +3,7 @@
 import re
 import json
 
-from sh import docker
+from subprocess import check_output
 from os.path import abspath, dirname, join
 
 IMAGE = 'codebox'
@@ -11,10 +11,14 @@ CODEBOX_SOURCE_DIR = abspath(join(dirname(__file__), '../src'))
 TIMEOUT = 5
 
 
+def run_command(command, input=None):
+    return check_output(command, input=input, shell=True, universal_newlines=True)
+
+
 def create_docker_image():
-    images = str(docker.images())
+    images = run_command('docker images')
     if re.search(r'\n%s\s' % IMAGE, images) is None:
-        docker.build('--tag', IMAGE, CODEBOX_SOURCE_DIR)
+        run('docker build --tag %s %s' % (IMAGE, CODEBOX_SOURCE_DIR))
     return
 
 
@@ -31,13 +35,10 @@ def run(sourcetree=None, commands=None, input_=''):
         'commands': commands
     }
     job_json = json.dumps(job)
-    output = docker.run('-i',
-                        '--rm',
-                        '-v', '%s:/%s_1:ro' % (CODEBOX_SOURCE_DIR, IMAGE),
-                        '--workdir', '/%s_1' % IMAGE,
-                        IMAGE, _in=job_json, _ok_code=[0, 1])
-    return output.stderr.decode('utf-8') if output.stderr else \
-        json.loads(output.stdout.decode('utf-8'))
+    # print(job_json)
+    output = run_command('docker run -i --rm -v {0}:/{1}_1:ro --workdir /{1}_1 {1}'.format(CODEBOX_SOURCE_DIR, IMAGE),
+                         input=job_json)
+    return json.loads(output)
 
 
 class TestPython(object):
@@ -103,7 +104,7 @@ for line in sys.stdin.readlines():
     def test_timeout(self):
         source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
         resp = self.run(source, timeout=0.3)
-        assert resp['execution']['stdout'] == 'Going to sleep...\n'
+        assert resp['execution']['stdout'] == ''
         assert 'ERROR: Time limit exceeded' in resp['execution']['stderr']
 
     def test_net_access(self):
@@ -406,7 +407,7 @@ class TestBash(object):
     def test_hg(self):
         source = 'hg version'
         resp = self.run(source)
-        assert 'http://mercurial.selenic.com' in resp['run']['stdout']
+        assert 'Mercurial Distributed SCM' in resp['run']['stdout']
 
     def test_git(self):
         source = 'git version'
@@ -414,6 +415,6 @@ class TestBash(object):
         assert source in resp['run']['stdout']
 
     def test_svn(self):
-        source = 'svn --version'
-        resp = self.run(source)
+        commands = [('run', 'svn --version', TIMEOUT)]
+        resp = run(commands=commands)
         assert 'http://subversion.apache.org/' in resp['run']['stdout']

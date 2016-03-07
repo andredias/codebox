@@ -1,13 +1,11 @@
 #!/usr/bin/python3
 
-import io
 import os
-import re
-import sh
 import shutil
 import sys
 import json
-import traceback
+import shlex
+from subprocess import Popen, PIPE, TimeoutExpired
 from tempfile import mkdtemp
 from metrics.lint import lint
 from metrics.metrics import collect_metrics
@@ -19,6 +17,7 @@ def run(sourcetree=None, commands=None, input_=None):
     '''
     commands = [(phase, line, timeout), ...]
     '''
+    input_ = input_ or ''
     sourcetree = sourcetree or {}
     commands = commands or []
     response = {}
@@ -72,32 +71,31 @@ def exec_commands(commands, input_=None, ref_dir=''):
     if ref_dir:
         os.chdir(ref_dir)
     response = {}
-    ok_code = range(128)
     exit_code = 0
+
     for phase, command, timeout in commands:
-        command, *args = re.sub(r'\s+', ' ', command).split()  # *args não funciona no python2
+        # TODO: substituir por run quando chegar o Python 3.5
+        # trecho abaixo baseado no exemplo de:
+        # https://docs.python.org/3/library/subprocess.html#subprocess.Popen.communicate
+        if isinstance(command, str):
+            command = shlex.split(command)
         try:
-            command = sh.Command(command)
-        except sh.CommandNotFound:
-            response[phase] = {
-                'stdout': '',
-                'stderr': 'Command not found: %s' % command,
-                'exit_code': 1,
-            }
-            break
-        timeout_msg = ''
-        stdout = io.StringIO()
-        stderr = io.StringIO()
-        try:
-            output = command(*args, _in=input_, _timeout=timeout, _encoding='utf-8',
-                             _ok_code=ok_code, _out=stdout, _err=stderr)
-            exit_code = output.exit_code
-        except sh.TimeoutException:
-            timeout_msg = '\nERROR: Time limit exceeded %ss' % timeout
-            exit_code = 1
+            proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+            output, errors = proc.communicate(input=input_, timeout=timeout)
+            exit_code = proc.returncode
+        except FileNotFoundError:
+            output = ''
+            errors += '\nCommand not found'
+            exit_code = -1
+        except TimeoutExpired:
+            proc.kill()
+            output, errors = proc.communicate(timeout=0.1)  # segunda chance de terminar por bem
+            exit_code = proc.returncode or 1
+            errors += '\nERROR: Time limit exceeded %ss' % timeout
+
         response[phase] = {
-            'stdout': stdout.getvalue(),
-            'stderr': stderr.getvalue() + timeout_msg,
+            'stdout': output,
+            'stderr': errors,
             'exit_code': exit_code,
         }
         if exit_code != 0:

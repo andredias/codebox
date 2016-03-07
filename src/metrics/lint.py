@@ -11,24 +11,27 @@ Each lint result should have the following fields:
 '''
 
 import re
-import sh
 import json
 import traceback
+from subprocess import Popen, PIPE
 from . import lint_messages as lm
 from os.path import dirname, join, splitext
 
-ok_codes = list(range(128))
+
+def run(*args):
+    proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    output, errors = proc.communicate()
+    exit_code = proc.returncode
+    return exit_code, output, errors
 
 
 def flake8(filename):
     ignore = 'F,N804,N805'
-    max_line_length = 120
-    output = sh.flake8('--ignore', ignore,
-                       '--max-line-length', max_line_length, filename,
-                       _ok_code=ok_codes).stdout.decode('utf-8').strip().split('\n')
+    max_line_length = '120'
+    _, output, __ = run('flake8', '--ignore', ignore, '--max-line-length', max_line_length, filename)
     pattern = r'[\w|/]*:(?P<line>\d+):(?P<column>\d+):\s+(?P<code>[A-Z]\d+)\s+(?P<message>.*)$'
     result = []
-    for line in output:
+    for line in output.split('\n'):
         match = re.search(pattern, line)
         if match:
             result += [
@@ -47,14 +50,11 @@ def flake8(filename):
 
 def pylint(filename):
     disable = 'C0103,C0111,C0112,C0301,C0303,C0304'
-    output = sh.pylint('--disable', disable,
-                       '--reports', 'n',
-                       '--msg-template', '{msg_id}:{line}:{column}:{msg}',
-                       filename,
-                       _ok_code=ok_codes).stdout.decode('utf-8').strip().split('\n')
+    _, output, __ = run('pylint', '--disable', disable, '--reports', 'n', '--msg-template',
+                        '{msg_id}:{line}:{column}:{msg}', filename)
     pattern = r'(?P<code>[A-Z]\d+):(?P<line>\d+):(?P<column>\d+):(?P<message>.*)$'
     result = []
-    for line in output:
+    for line in output.split('\n'):
         match = re.search(pattern, line)
         if match:
             result += [
@@ -72,10 +72,10 @@ def pylint(filename):
 
 def cpplint(filename):
     linter = join(dirname(__file__), 'cpplint.py')
-    reports = sh.Command(linter)('--linelength', '120', '--filter=-legal', filename, _ok_code=ok_codes)
+    _, __, reports = run(linter, '--linelength', '120', '--filter=-legal', filename)
     pattern = r'^[\w\d\.\-_/]+:(?P<line>\d+):\s+(?P<msg>(?:(?!\s+\[).)+)\s+\[(?P<code>[\w\d/]+)'
     result = []
-    for line in reports.stderr.decode('utf-8').split('\n'):
+    for line in reports.split('\n'):
         match = re.findall(pattern, line)
         if match:
             match = match[0]
@@ -93,8 +93,8 @@ def cpplint(filename):
 
 def flintplusplus(filename, c_flag=''):
     linter = join(dirname(__file__), 'flint++')
-    reports = sh.Command(linter)('-j', c_flag, filename, _ok_code=ok_codes)
-    reports = json.loads(str(reports))
+    _, reports, __ = run(linter, '-j', c_flag, filename)
+    reports = json.loads(reports)
     reports = reports['files'][0]['reports']
     return [
         {
@@ -121,7 +121,8 @@ def rubocop(filename):
 
     1 file inspected, 3 offenses detected
     '''
-    reports = str(sh.rubocop('--format', 'simple', filename, _ok_code=ok_codes)).split('\n')
+    _, reports, __ = run('rubocop', '--format', 'simple', filename)
+    reports = reports.split('\n')
     pattern = r'^(?P<code>\w):\s+(?P<line>\d+):\s+(?P<column>\d+):\s+(?P<message>.*)$'
     code = {'R': 'Refactor', 'C': 'Convention', 'E': 'Error', 'F': 'Fatal', 'W': 'Warning'}
     result = []

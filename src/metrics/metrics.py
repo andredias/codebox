@@ -6,11 +6,10 @@ that should be obtained in other languages besides javascript.
 See: https://github.com/philbooth/escomplex/blob/master/README.md#metrics
 '''
 
-import sh
 import json
 
 from os.path import splitext
-
+from subprocess import check_output
 
 def radon(filename):
     '''
@@ -52,7 +51,7 @@ def complexity_report(filename):
     Javascript
     complexity-report (https://github.com/philbooth/complexity-report)
     '''
-    report = json.loads(str(sh.cr('-t', '-f', 'json', filename)))
+    report = json.loads(check_output(('cr', '-t', '-f', 'json', filename), universal_newlines=True))
     metrics = {}
     sloc = report['reports'][0]['aggregate']['sloc']
     metrics['loc'] = {
