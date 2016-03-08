@@ -5,7 +5,7 @@ import shutil
 import sys
 import json
 import shlex
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import call, check_output, Popen, PIPE, TimeoutExpired
 from tempfile import mkdtemp
 from metrics.lint import lint
 from metrics.metrics import collect_metrics
@@ -72,7 +72,6 @@ def exec_commands(commands, input_=None, ref_dir=''):
         os.chdir(ref_dir)
     response = {}
     exit_code = 0
-
     for phase, command, timeout in commands:
         # TODO: substituir por run quando chegar o Python 3.5
         # trecho abaixo baseado no exemplo de:
@@ -88,8 +87,14 @@ def exec_commands(commands, input_=None, ref_dir=''):
             errors += '\nCommand not found'
             exit_code = -1
         except TimeoutExpired:
-            proc.kill()
-            output, errors = proc.communicate(timeout=0.1)  # segunda chance de terminar por bem
+            # remove todos os processos filhos e descendentes
+            pid = os.getpid()
+            # todos menos o primeiro da lista devem ser mortos
+            children = check_output(['pgrep', '-g', str(pid)]).decode('utf-8').splitlines()[1::]
+            children = children[::-1]
+            for child in children:
+                call(['kill', '-TERM', child])
+            output, errors = proc.communicate()  # segunda chance de terminar por bem
             exit_code = proc.returncode or 1
             errors += '\nERROR: Time limit exceeded %ss' % timeout
 

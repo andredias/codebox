@@ -418,3 +418,56 @@ class TestBash(object):
         commands = [('run', 'svn --version', TIMEOUT)]
         resp = run(commands=commands)
         assert 'http://subversion.apache.org/' in resp['run']['stdout']
+
+    def test_timeout(self):
+        source = '''
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Going to sleep..." << flush;
+    while (1) {
+    }
+    cout << "overslept!";
+    return 0;
+}'''
+        sourcetree = {
+            'source.cpp': source,
+            'source.sh': './a.out',
+        }
+        commands = [
+            ('build', ('g++', 'source.cpp'), 0.3),
+            ('run', ('bash', 'source.sh'), 0.3)
+        ]
+        resp = run(sourcetree, commands)
+        assert resp['build']['stdout'] == ''
+        assert resp['build']['stderr'] == ''
+        assert resp['run']['stdout'] == 'Going to sleep...'
+        assert 'ERROR: Time limit exceeded' in resp['run']['stderr']
+
+    def test_timeout2(self):
+        source = '''
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Going to sleep..." << flush;
+    while (1) {
+    }
+    cout << "overslept!";
+    return 0;
+}'''
+        sourcetree = {
+            'source.cpp': source,
+            'source1.sh': './a.out',
+            'source2.sh': 'bash source1.sh',
+        }
+        commands = [
+            ('build', ('g++', 'source.cpp'), 0.3),
+            ('run', ('bash', 'source2.sh'), 0.3)
+        ]
+        resp = run(sourcetree, commands)
+        assert resp['build']['stdout'] == ''
+        assert resp['build']['stderr'] == ''
+        assert resp['run']['stdout'] == 'Going to sleep...'
+        assert 'ERROR: Time limit exceeded' in resp['run']['stderr']
