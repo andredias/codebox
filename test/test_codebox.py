@@ -325,13 +325,14 @@ func main() {
 
 class TestSQLite(object):
 
-    filename = 'database.db'
+    filename = 'source.sql'
 
     def run(self, source, timeout=TIMEOUT):
+        sourcetree = {self.filename: source}
         commands = [
-            ('run', 'sqlite3 -bail %s' % self.filename, timeout)
+            ('run', 'sqlite3 -bail -init %s' % self.filename, timeout)
         ]
-        return run(commands=commands, input_=source)
+        return run(sourcetree, commands)
 
     def test_help(self):
         source = '.help'
