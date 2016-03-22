@@ -13,8 +13,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip \
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 # pacotes
-RUN pip3 install sh flake8 pep8-naming pylint radon
-RUN gem install rubocop
+RUN pip3 install flake8 pep8-naming pylint radon==1.3.0
+RUN gem install rubocop -v 0.37.2
 RUN npm install -g sloc
 RUN npm install -g complexity-report
 RUN pip install -U mercurial
