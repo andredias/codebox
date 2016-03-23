@@ -108,7 +108,7 @@ for line in sys.stdin.readlines():
         assert 'ERROR: Time limit exceeded' in resp['execution']['stderr']
 
     def test_net_access(self):
-        source = 'from sh import ping\nprint(ping("-c", "1", "www.google.com"))'
+        source = 'from subprocess import check_output\n\nprint(check_output(["ping", "-c", "1", "www.google.com"]))'
         resp = self.run(source)
         assert resp['execution']['stderr'] == ''
         assert 'PING www.google.com (' in resp['execution']['stdout']
@@ -149,7 +149,7 @@ class someclass():
         assert 'source.py' in resp['metrics']
 
     def test_access_to_worker_dir(self):
-        source = 'import sh\n\nprint(sh.ls("-R", "/%s"))\n' % IMAGE
+        source = 'from subprocess import check_output\n\nprint(check_output(["ls", "-R", "/%s"]))' % IMAGE
         resp = self.run(source)
         assert ('cannot open directory /%s: Permission denied' % IMAGE) in resp['execution']['stderr']
 
