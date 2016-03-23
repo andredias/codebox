@@ -1,16 +1,13 @@
 #!/usr/bin/python3
 
 import os
-import shutil
 import sys
 import json
 import shlex
 from subprocess import call, check_output, Popen, PIPE, TimeoutExpired
-from tempfile import mkdtemp
+from tempfile import TemporaryDirectory
 from metrics.lint import lint
 from metrics.metrics import collect_metrics
-
-TIMEOUT_EXIT_CODE = 124
 
 
 def run(sourcetree=None, commands=None, input_=None):
@@ -21,21 +18,22 @@ def run(sourcetree=None, commands=None, input_=None):
     sourcetree = sourcetree or {}
     commands = commands or []
     response = {}
-    ruid, euid, suid = os.getresuid()
-    is_root = ruid == 0
-    if is_root:
-        os.setresuid(1000, 1000, 0)  # run as 'user'
-    try:
-        tempdir = mkdtemp()
+    with TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
         if sourcetree:
             save_sourcetree(sourcetree)
             response.update(evaluate(sourcetree.keys()))
-        response.update(exec_commands(commands, input_))
-        shutil.rmtree(tempdir)
-    finally:
+        # não executar nenhum comando como root
+        ruid, euid, suid = os.getresuid()
+        is_root = ruid == 0
         if is_root:
-            os.setresuid(ruid, euid, suid)  # back to 'root'
+            os.system('chown -R 1000:1000 %s' % tempdir)
+            os.setresuid(1000, 1000, 0)  # run as 'user'
+        try:
+            response.update(exec_commands(commands, input_))
+        finally:
+            if is_root:
+                os.setresuid(ruid, euid, suid)  # back to 'root'
     return response
 
 

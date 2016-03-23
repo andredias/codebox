@@ -8,7 +8,7 @@ from os.path import abspath, dirname, join
 
 IMAGE = 'codebox'
 CODEBOX_SOURCE_DIR = abspath(join(dirname(__file__), '../src'))
-TIMEOUT = 5
+TIMEOUT = 1
 
 
 def run_command(command, input=None):
@@ -35,9 +35,11 @@ def run(sourcetree=None, commands=None, input_=''):
         'commands': commands
     }
     job_json = json.dumps(job)
+    # Rodar com versão local do código fonte
     # print(job_json)
-    output = run_command('docker run -i --rm -v {0}:/{1}_1:ro --workdir /{1}_1 {1}'.format(CODEBOX_SOURCE_DIR, IMAGE),
-                         input=job_json)
+    # output = run_command('docker run -i --rm -v {0}:/{1}_1:ro --workdir /{1}_1 {1}'.format(CODEBOX_SOURCE_DIR, IMAGE),
+    #                      input=job_json)
+    output = run_command('docker run -i --rm {}'.format(IMAGE), input=job_json)
     return json.loads(output)
 
 
@@ -103,7 +105,7 @@ for line in sys.stdin.readlines():
 
     def test_timeout(self):
         source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
-        resp = self.run(source, timeout=0.3)
+        resp = self.run(source)
         assert resp['execution']['stdout'] == ''
         assert 'ERROR: Time limit exceeded' in resp['execution']['stderr']
 
@@ -206,7 +208,7 @@ int main() {
     cout << "overslept!";
     return 0;
 }'''
-        resp = self.run(source, timeout=0.3)
+        resp = self.run(source)
         assert resp['build']['stdout'] == ''
         assert resp['build']['stderr'] == ''
         assert resp['run']['stdout'] == 'Going to sleep...'
@@ -437,8 +439,8 @@ int main() {
             'source.sh': './a.out',
         }
         commands = [
-            ('build', ('g++', 'source.cpp'), 0.3),
-            ('run', ('bash', 'source.sh'), 0.3)
+            ('build', ('g++', 'source.cpp'), TIMEOUT),
+            ('run', ('bash', 'source.sh'), TIMEOUT)
         ]
         resp = run(sourcetree, commands)
         assert resp['build']['stdout'] == ''
@@ -464,8 +466,8 @@ int main() {
             'source2.sh': 'bash source1.sh',
         }
         commands = [
-            ('build', ('g++', 'source.cpp'), 0.3),
-            ('run', ('bash', 'source2.sh'), 0.3)
+            ('build', ('g++', 'source.cpp'), TIMEOUT),
+            ('run', ('bash', 'source2.sh'), TIMEOUT)
         ]
         resp = run(sourcetree, commands)
         assert resp['build']['stdout'] == ''
