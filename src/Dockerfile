@@ -1,20 +1,21 @@
 FROM ubuntu:latest
 MAINTAINER André Felipe Dias <andre.dias@pronus.io>
 
+RUN apt-get update
 RUN apt-get install -y software-properties-common
-RUN add-apt-repository -y ppa:git-core/ppa && \
-    add-apt-repository -y ppa:dominik-stadler/subversion-1.8
+RUN add-apt-repository -y ppa:git-core/ppa
 RUN apt-get update
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip \
-    ruby nodejs npm golang sqlite3 git subversion python python-pip python-dev build-essential
+    ruby nodejs npm golang sqlite3 git subversion python python-pip python-dev build-essential \
+    locales
 
 # http://stackoverflow.com/questions/26320901/cannot-install-nodejs-usr-bin-env-node-no-such-file-or-directory
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 # pacotes
-RUN pip3 install flake8 pep8-naming pylint radon==1.3.0
-RUN gem install rubocop -v 0.37.2
+RUN pip3 install flake8 pep8-naming pylint radon
+RUN gem install rubocop
 RUN npm install -g sloc
 RUN npm install -g complexity-report
 RUN pip install -U mercurial
