@@ -1,29 +1,14 @@
-#!/usr/bin/python3
-
-import re
 import json
 
-from subprocess import check_output
-from os.path import abspath, dirname, join
+from subprocess import call
 
 IMAGE = 'codebox'
-CODEBOX_SOURCE_DIR = abspath(join(dirname(__file__), '../src'))
 TIMEOUT = 1
 
 
 def run_command(command, input=None):
     return check_output(command, input=input, shell=True, universal_newlines=True)
 
-
-def create_docker_image():
-    images = run_command('docker images')
-    if re.search(r'\n%s\s' % IMAGE, images) is None:
-        run('docker build --tag %s %s' % (IMAGE, CODEBOX_SOURCE_DIR))
-    return
-
-
-def setup():
-    create_docker_image()
 
 
 def run(sourcetree=None, commands=None, input_=''):
@@ -39,7 +24,7 @@ def run(sourcetree=None, commands=None, input_=''):
     # print(job_json)
     # output = run_command('docker run -i --rm -v {0}:/{1}_1:ro --workdir /{1}_1 {1}'.format(CODEBOX_SOURCE_DIR, IMAGE),
     #                      input=job_json)
-    output = run_command('docker run -i --rm {}'.format(IMAGE), input=job_json)
+    # output = run(['docker', 'run', '-i', '--rm', 'codebox'], input=job_json, text=True, capture_output=True).stdout
     return json.loads(output)
 
 

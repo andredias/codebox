@@ -1,31 +1,26 @@
-#!/usr/bin/python3
-
-import shutil
 from os.path import exists, join
-from src import codebox
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from app.codebox import save_sources
 
 TIMEOUT = 0.1
 
 
-def save_sources(sourcetree, tempdir):
-    if exists(tempdir):
-        shutil.rmtree(tempdir)
-    codebox.save_sourcetree(sourcetree, tempdir)
-
-
 def test_save_sourcetree():
-    sourcetree = {
+    sources = {
         'a': 'aaaa',
         'b': 'bbb',
-        'test/d': 'ddd',
-        'test/e': 'eee',
+        'app/d': 'ddd',
+        'app/x/e': 'eee',
         'images/f': 'fff',
-        'images/g': 'ggg',
+        '/images/g': 'ggg',
     }
-    tempdir = '/tmp/test_save_sourcetree'
-    save_sources(sourcetree, tempdir)
-    for filename in sourcetree.keys():
-        assert exists(join(tempdir, filename))
+
+    with TemporaryDirectory() as tempdir:
+        tempdir = Path(tempdir)
+        save_sources(tempdir, sources)
+        assert len(list(tempdir.glob('**/*'))) == 9
 
 
 def test_evaluate():

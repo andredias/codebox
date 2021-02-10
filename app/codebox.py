@@ -1,25 +1,39 @@
-#!/usr/bin/python3
-
+from genericpath import exists
 import os
 import sys
 import json
 import shlex
+from pathlib import Path
 from subprocess import call, check_output, Popen, PIPE, TimeoutExpired
 from tempfile import TemporaryDirectory
-from metrics.lint import lint
-from metrics.metrics import collect_metrics
+from .metrics.lint import lint
+from .metrics.metrics import collect_metrics
+from .models import Sourcefiles
 
 
-def run(sourcetree=None, commands=None, input_=None):
+def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
+    '''
+    Save sources to a temporary directory
+    '''
+    for path, code in sources.items():
+        p = dest_dir / path.lstrip(os.sep)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(code)
+    return
+
+
+def run_project(sources: Sourcefiles, commands=None, input_=None):
     '''
     commands = [(phase, line, timeout), ...]
     '''
     input_ = input_ or ''
-    sourcetree = sourcetree or {}
-    commands = commands or []
     response = {}
     with TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
+        dest_dir = Path(tempdir)
+        save_sources(dest_dir, sources)
+
+
         if sourcetree:
             save_sourcetree(sourcetree)
             response.update(evaluate(sourcetree.keys()))
@@ -36,18 +50,6 @@ def run(sourcetree=None, commands=None, input_=None):
                 os.setresuid(ruid, euid, suid)  # back to 'root'
     return response
 
-
-def save_sourcetree(sourcetree, destdir=''):
-    '''
-    Save sources to a temporary directory
-    '''
-    for name, source in sourcetree.items():
-        filename = os.path.join(destdir, name.lstrip(os.path.sep))
-        directory = os.path.dirname(filename)
-        if directory:
-            os.makedirs(directory, exist_ok=True)
-        with open(filename, mode='w', encoding='utf-8') as f:
-            f.write(source)
 
 
 def evaluate(filenames, ref_dir=''):
