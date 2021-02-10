@@ -20,18 +20,22 @@ class Metric(BaseModel):
 Sourcefiles = dict[str, str]
 
 
-class CommandIn(BaseModel):
+class Command(BaseModel):
     type: str
     command: str
     timeout: Optional[float] = None
     input: Optional[str] = None
 
 
-class CommandOut(BaseModel):
-    type: str
-    command: str
-    stdout: Optional[str] = None
-    stderr: Optional[str] = None
+class ProjectIn(BaseModel):
+    sources: Sourcefiles
+    commands: list[Command]
+
+
+class Response(BaseModel):
+    stdout: str = ''
+    stderr: str = ''
+    exit_code: int
 
 
 class ProjectOut(BaseModel):
@@ -40,7 +44,7 @@ class ProjectOut(BaseModel):
 
 class ProjectCore(BaseModel):
     sources: Sourcefiles
-    commands: list[CommandIn]
+    commands: list[Command]
 
 
 class ProjectIn(ProjectCore):
