@@ -1,4 +1,3 @@
-from genericpath import exists
 import os
 import sys
 import json
@@ -32,7 +31,6 @@ def run_project(sources: Sourcefiles, commands=None, input_=None):
         os.chdir(tempdir)
         dest_dir = Path(tempdir)
         save_sources(dest_dir, sources)
-
 
         if sourcetree:
             save_sourcetree(sourcetree)

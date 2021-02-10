@@ -6,12 +6,15 @@ ENV PYTHONUNBUFFERED=1
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get -y upgrade && \
-    apt-get install -y --no-install-recommends build-essential && \
+    apt-get install -y --no-install-recommends build-essential curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+
 RUN python -m venv /venv
-ENV PATH=/venv/bin:${PATH}
+ENV PATH=/venv/bin:/root/.poetry/bin:${PATH}
 RUN pip install --upgrade pip && pip install dumb-init
 
 # pacotes
@@ -21,9 +24,10 @@ RUN pip install --upgrade pip && pip install dumb-init
 # RUN pip3 install -U mercurial
 
 WORKDIR /codebox
-COPY app/requirements.txt .
-RUN pip install -r requirements.txt
-COPY app/ .
+COPY pyproject.toml poetry.lock ./
+RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-dev
+
+COPY app/ ./app
 
 USER nobody
 

@@ -1,13 +1,12 @@
 from os.path import exists, join
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
-from app.codebox import save_sources
+from app.codebox import save_sources  # isort:skip
 
 TIMEOUT = 0.1
 
 
-def test_save_sourcetree():
+def test_save_sources(tmp_path: Path) -> None:
     sources = {
         'a': 'aaaa',
         'b': 'bbb',
@@ -16,11 +15,8 @@ def test_save_sourcetree():
         'images/f': 'fff',
         '/images/g': 'ggg',
     }
-
-    with TemporaryDirectory() as tempdir:
-        tempdir = Path(tempdir)
-        save_sources(tempdir, sources)
-        assert len(list(tempdir.glob('**/*'))) == 9
+    save_sources(tmp_path, sources)
+    assert len(list(tmp_path.glob('**/*'))) == 9
 
 
 def test_evaluate():
