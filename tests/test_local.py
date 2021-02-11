@@ -3,8 +3,8 @@ from pathlib import Path
 
 from pytest import mark
 
-from app.codebox import execute, save_sources  # isort:skip
-from app.models import Command, Response  # isort:skip
+from app.codebox import execute, run_project, save_sources  # isort:skip
+from app.models import Command, ProjectIn, Response  # isort:skip
 
 TIMEOUT = 0.1
 
@@ -51,6 +51,32 @@ def test_save_sources(tmp_path: Path) -> None:
 def test_execute(command, response):
     result = execute(command)
     assert response == result
+
+
+@mark.parametrize('project,responses', [
+    (
+        ProjectIn(
+            sources={'hello.py': 'print("Olá mundo!")\n'},
+            commands=[Command(type='python', command='python hello.py', timeout=TIMEOUT), ]
+        ),
+        [Response(stdout='Olá mundo!\n', stderr='', exit_code=0)]
+    ),
+    (
+        ProjectIn(
+            sources={'hello.py': '''import os
+
+sys.stdout.write('Olá mundo!')'''},
+            commands=[Command(type='python', command='python hello.py', timeout=TIMEOUT), ]
+        ),
+        [Response(stdout='',
+                  stderr='Traceback (most recent call last):\n  File "/tmp/sandbox/hello.py", '
+                         'line 3, in <module>\n    sys.stdout.write(\'Olá mundo!\')\n'
+                         'NameError: name \'sys\' is not defined\n',
+                  exit_code=1)]
+    ),
+])
+def test_run_project(project, responses):
+    assert run_project(project) == responses
 
 
 @mark.skip

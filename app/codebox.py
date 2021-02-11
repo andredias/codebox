@@ -3,9 +3,9 @@ import os
 import sys
 from pathlib import Path
 from subprocess import TimeoutExpired, run
-from tempfile import TemporaryDirectory
 
-from .models import Command, Response, ProjectIn, Sourcefiles
+from .models import Command, ProjectIn, Response, Sourcefiles
+from .utils import SandboxDirectory
 
 
 def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
@@ -24,10 +24,8 @@ def run_project(project: ProjectIn):
     commands = [(phase, line, timeout), ...]
     '''
     responses = []
-    with TemporaryDirectory() as tempdir:
-        os.chdir(tempdir)
-        dest_dir = Path(tempdir)
-        save_sources(dest_dir, project.sources)
+    with SandboxDirectory() as sandbox:
+        save_sources(sandbox, project.sources)
         for command in project.commands:
             resp = execute(command)
             responses.append(resp)
