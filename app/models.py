@@ -21,13 +21,13 @@ Sourcefiles = dict[str, str]
 
 
 class Command(BaseModel):
-    type: str
+    type: Optional[str]
     command: str
     timeout: Optional[float] = None
     input: Optional[str] = None
 
 
-class ProjectIn(BaseModel):
+class CodeboxInput(BaseModel):
     sources: Sourcefiles
     commands: list[Command]
 
@@ -47,10 +47,10 @@ class ProjectCore(BaseModel):
     commands: list[Command]
 
 
-class ProjectIn(ProjectCore):
+class CodeboxInput(ProjectCore):
     title: str = ''
     description: str = ''
 
 
-class Project(ProjectIn, ProjectOut):
+class Project(CodeboxInput, ProjectOut):
     pass

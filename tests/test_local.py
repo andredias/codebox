@@ -1,10 +1,9 @@
-from os.path import exists
 from pathlib import Path
 
 from pytest import mark
 
 from app.codebox import execute, run_project, save_sources  # isort:skip
-from app.models import Command, ProjectIn, Response  # isort:skip
+from app.models import Command, Response  # isort:skip
 
 TIMEOUT = 0.1
 
@@ -53,191 +52,55 @@ def test_execute(command, response):
     assert response == result
 
 
-@mark.parametrize('project,responses', [
-    (
-        ProjectIn(
-            sources={'hello.py': 'print("Olá mundo!")\n'},
-            commands=[Command(type='python', command='python hello.py', timeout=TIMEOUT), ]
-        ),
-        [Response(stdout='Olá mundo!\n', stderr='', exit_code=0)]
+projects = [
+    (  # empty project
+        {},
+        [],
+        [],
     ),
-    (
-        ProjectIn(
-            sources={'hello.py': '''import os
-
-sys.stdout.write('Olá mundo!')'''},
-            commands=[Command(type='python', command='python hello.py', timeout=TIMEOUT), ]
-        ),
-        [Response(stdout='',
-                  stderr='Traceback (most recent call last):\n  File "/tmp/sandbox/hello.py", '
-                         'line 3, in <module>\n    sys.stdout.write(\'Olá mundo!\')\n'
-                         'NameError: name \'sys\' is not defined\n',
-                  exit_code=1)]
+    (  # only source, no command
+        {'hello.py': 'print("Olá mundo!")\n'},
+        [],
+        [],
     ),
-])
-def test_run_project(project, responses):
-    assert run_project(project) == responses
-
-
-@mark.skip
-def test_program_error():
-    '''
-    Python program with a syntax error
-    '''
-    source = '''import os
-
-sys.stdout.write('Olá mundo!')'''
-    sourcetree = {'hello.py': source}
-    tempdir = 'test_program_error'
-    save_sources(sourcetree, tempdir)
-    command = [
-        ('execution', 'python3 hello.py', TIMEOUT),
-    ]
-    resp = codebox.exec_commands(command, ref_dir=tempdir)
-    assert resp['execution']['stdout'] == ''
-    assert "NameError: name 'sys' is not defined" in resp['execution']['stderr']
-    assert resp['execution']['exit_code'] != 0
-
-
-@mark.skip
-def test_input():
-    text = 'Hello\nWorld'
-    source = '''import sys
+    (  # only command, no source
+        {},
+        [
+            Command(command='echo 1 2 3'),
+        ],
+        [
+            Response(stdout='1 2 3\n', stderr='', exit_code=0)
+        ],
+    ),
+    (  # multiple source files and commands
+        {  # sources
+            'main.py': 'print("Olá mundo!")\n',
+            'hello/hello.py': '''import sys
 
 for line in sys.stdin.readlines():
     sys.stdout.write(line)
 '''
-    sourcetree = {
-        'input.py': source,
-    }
-    tempdir = '/tmp/test_input'
-    save_sources(sourcetree, tempdir)
-    command = [('test_input', 'python3 input.py', TIMEOUT)]
-    resp = codebox.exec_commands(command, input_=text, ref_dir=tempdir)
-    assert resp['test_input']['stdout'] == 'Hello\nWorld'
-    assert resp['test_input']['stderr'] == ''
+        },
+        [  # commands
+            Command(command=f'sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
+            Command(command='python main.py'),
+            Command(command='python hello/hello.py', input='Olá\nAçúcar'),
+            Command(command='python hello/hello.py', timeout=TIMEOUT),
+            Command(command='cat hello.py'),
+            Command(command='cat main.py'),
+        ],
+        [
+            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
+            Response(stdout='Olá mundo!\n', stderr='', exit_code=0),
+            Response(stdout='Olá\nAçúcar', stderr='', exit_code=0),
+            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
+            Response(stdout='', stderr='cat: hello.py: No such file or directory\n', exit_code=1),
+            Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0)
+        ],
+    ),
+]
 
 
-@mark.skip
-def test_utf_8_input():
-    text = 'Olá\nAçúcar'
-    source = '''import sys
-
-for line in sys.stdin.readlines():
-    sys.stdout.write(line)
-'''
-    sourcetree = {
-        'input.py': source,
-    }
-    tempdir = '/tmp/test_utf_8_input'
-    save_sources(sourcetree, tempdir)
-    command = [('utf_8', 'python3 input.py', TIMEOUT)]
-    resp = codebox.exec_commands(command, input_=text, ref_dir=tempdir)
-    assert resp['utf_8']['stdout'] == 'Olá\nAçúcar'
-    assert resp['utf_8']['stderr'] == ''
-
-
-@mark.skip
-def test_timeout():
-    source = 'import time\nprint("Going to sleep...")\ntime.sleep(5)\nprint("Overslept!")'
-    sourcetree = {
-        'timeout.py': source
-    }
-    tempdir = '/tmp/test_timeout'
-    save_sources(sourcetree, tempdir)
-    command = [('timeout', 'python3 timeout.py', TIMEOUT)]
-    resp = codebox.exec_commands(command, ref_dir=tempdir)
-    assert resp['timeout']['stdout'] == ''
-    assert 'ERROR: Time limit exceeded' in resp['timeout']['stderr']
-
-
-@mark.skip
-def test_multiple_commands():
-    source = '''#!/bin/bash
-exit 1
-'''
-    sourcetree = {'exit.sh': source}
-    tempdir = '/tmp/test_multiple_commands'
-    save_sources(sourcetree, tempdir)
-    commands = [
-        ('1', 'ls -l -h -a /srv', TIMEOUT),
-        ('2', 'echo abcd', TIMEOUT),
-        ('3', 'bash exit.sh', TIMEOUT),
-        ('4', 'echo nothing', TIMEOUT),
-    ]
-    result = codebox.exec_commands(commands, ref_dir=tempdir)
-    assert len(result) == 3
-
-
-@mark.skip
-def test_command_not_found():
-    commands = [
-        ('1', 'ls -l -h -a /srv', TIMEOUT),
-        ('2', 'echo abcd', TIMEOUT),
-        ('3', 'alksajkjalja', TIMEOUT),
-        ('4', 'echo nothing', TIMEOUT),
-    ]
-    result = codebox.exec_commands(commands)
-    assert len(result) == 3
-    assert 'Command not found' in result['3']['stderr']
-
-
-@mark.skip
-def test_save_path_sep():
-    '''
-    Verifica se nomes de arquivos que começam com '/' estão sendo devidamente
-    tratados
-    '''
-    sourcetree = {
-        '/tmp/lixo.sh': 'echo "lixo"',
-    }
-    tempdir = '/tmp/test_save_path_sep'
-    save_sources(sourcetree, tempdir)
-    assert exists('/tmp/test_save_path_sep/tmp/lixo.sh')
-
-
-@mark.skip
-def test_run():
-    text = 'Test\nRun'
-    source = '''import sys
-
-for line in sys.stdin.readlines():
-    sys.stdout.write(line)
-'''
-    sourcetree = {
-        '__init__.py': '',
-        'test.py': source,
-        'doc/index.rst': 'Title\n=====\n\nOne paragraph'
-    }
-    commands = [
-        ('bash', 'echo hello wold', 0.1),
-        ('python', 'python3 test.py', 0.1),
-    ]
-    result = codebox.run(sourcetree, commands, input_=text)
-    assert 'lint' in result
-    assert 'metrics' in result
-    assert result['python']['stdout'] == 'Test\nRun'
-
-
-@mark.skip
-def test_run_nothing():
-    result = codebox.run()
-    assert result == {}
-
-
-@mark.skip
-def test_run_no_sourcetree():
-    result = codebox.run(commands=[('bash', 'echo test', TIMEOUT)])
-    assert result['bash']['stdout'] == 'test\n'
-
-
-@mark.skip
-def test_no_commands():
-    sourcetree = {
-        '__init__.py': '',
-        'test.py': '#!/usr/bin/python3',
-        'doc/index.rst': 'Title\n=====\n\nOne paragraph'
-    }
-    result = codebox.run(sourcetree)
-    assert 'lint' in result and 'test.py' in result['lint']
-    assert '__init__.py' in result['metrics']
+@mark.parametrize('sources,commands,responses', projects)
+def test_run_project(sources, commands, responses):
+    assert run_project(sources, commands) == responses

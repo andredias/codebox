@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from subprocess import TimeoutExpired, run
 
-from .models import Command, ProjectIn, Response, Sourcefiles
+from .models import Command, CodeboxInput, Response, Sourcefiles
 from .utils import SandboxDirectory
 
 
@@ -19,14 +19,14 @@ def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
     return
 
 
-def run_project(project: ProjectIn):
+def run_project(sources: Sourcefiles, commands: list[Command]) -> None:
     '''
     commands = [(phase, line, timeout), ...]
     '''
     responses = []
     with SandboxDirectory() as sandbox:
-        save_sources(sandbox, project.sources)
-        for command in project.commands:
+        save_sources(sandbox, sources)
+        for command in commands:
             resp = execute(command)
             responses.append(resp)
     return responses
@@ -63,7 +63,7 @@ def execute(command: Command) -> Response:
 
 if __name__ == '__main__':
     linhas = ''.join(sys.stdin.readlines())
-    project = ProjectIn.parse_raw(''.join(sys.stdin.readlines()))
-    response = run_project(project)
+    project = CodeboxInput.parse_raw(''.join(sys.stdin.readlines()))
+    response = run_project(project.sources, project.commands)
     json.dump(response, sys.stdout)
     sys.exit(0)
