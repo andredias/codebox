@@ -43,8 +43,8 @@ def test_save_sources(tmp_path: Path) -> None:
         Response(stdout='', stderr='/bin/sh: 1: nao_existe: Permission denied\n', exit_code=127)
     ),
     (
-        Command(type='bash', command='rm -rf /home', timeout=TIMEOUT),
-        Response(stdout='', stderr="rm: cannot remove '/home': Permission denied\n", exit_code=1)
+        Command(type='bash', command='rm -rf /tmp/try-to-remove.me', timeout=TIMEOUT),  # file created in Dockerfile.test
+        Response(stdout='', stderr="rm: cannot remove '/tmp/try-to-remove.me': Operation not permitted\n", exit_code=1)
     )
 ])
 def test_execute(command, response):

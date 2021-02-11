@@ -19,10 +19,7 @@ def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
     return
 
 
-def run_project(sources: Sourcefiles, commands: list[Command]) -> None:
-    '''
-    commands = [(phase, line, timeout), ...]
-    '''
+def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]:
     responses = []
     with SandboxDirectory() as sandbox:
         save_sources(sandbox, sources)
@@ -59,11 +56,3 @@ def execute(command: Command) -> Response:
         exit_code=exit_code,
     )
     return response
-
-
-if __name__ == '__main__':
-    linhas = ''.join(sys.stdin.readlines())
-    project = CodeboxInput.parse_raw(''.join(sys.stdin.readlines()))
-    response = run_project(project.sources, project.commands)
-    json.dump(response, sys.stdout)
-    sys.exit(0)
