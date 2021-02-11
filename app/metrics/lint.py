@@ -10,12 +10,13 @@ Each lint result should have the following fields:
     * linter: name of the program used
 '''
 
-import re
 import json
+import re
 import traceback
-from subprocess import Popen, PIPE
-from . import lint_messages as lm
 from os.path import dirname, join, splitext
+from subprocess import PIPE, Popen
+
+from . import lint_messages as lm
 
 
 def run(*args):
@@ -34,39 +35,36 @@ def flake8(filename):
     for line in output.split('\n'):
         match = re.search(pattern, line)
         if match:
-            result += [
-                {
-                    'line': int(match.group('line')),
-                    'column': int(match.group('column')),
-                    'code': match.group('code'),
-                    'message': match.group('message'),
-                    'level': lm.flake8.get(match.group('code'), 'info'),
-                    'linter': 'flake8',
-                }
-            ]
+            result += [{
+                'line': int(match.group('line')),
+                'column': int(match.group('column')),
+                'code': match.group('code'),
+                'message': match.group('message'),
+                'level': lm.flake8.get(match.group('code'), 'info'),
+                'linter': 'flake8',
+            }]
 
     return result
 
 
 def pylint(filename):
     disable = 'C0103,C0111,C0112,C0301,C0303,C0304'
-    _, output, __ = run('pylint', '--disable', disable, '--reports', 'n', '--msg-template',
-                        '{msg_id}:{line}:{column}:{msg}', filename)
+    _, output, __ = run(
+        'pylint', '--disable', disable, '--reports', 'n', '--msg-template', '{msg_id}:{line}:{column}:{msg}', filename
+    )
     pattern = r'(?P<code>[A-Z]\d+):(?P<line>\d+):(?P<column>\d+):(?P<message>.*)$'
     result = []
     for line in output.split('\n'):
         match = re.search(pattern, line)
         if match:
-            result += [
-                {
-                    'line': int(match.group('line')),
-                    'column': int(match.group('column')) + 1,  # column should start at 1, not 0
-                    'code': match.group('code'),
-                    'message': match.group('message'),
-                    'level': lm.pylint.get(match.group('code'), 'info'),
-                    'linter': 'pylint',
-                }
-            ]
+            result += [{
+                'line': int(match.group('line')),
+                'column': int(match.group('column')) + 1,  # column should start at 1, not 0
+                'code': match.group('code'),
+                'message': match.group('message'),
+                'level': lm.pylint.get(match.group('code'), 'info'),
+                'linter': 'pylint',
+            }]
     return result
 
 
@@ -79,15 +77,13 @@ def cpplint(filename):
         match = re.findall(pattern, line)
         if match:
             match = match[0]
-            result += [
-                {
-                    'line': int(match[0]),
-                    'code': match[2],
-                    'message': match[1],
-                    'level': lm.cpplint.get(match[2], 'info'),
-                    'linter': 'cpplint',
-                }
-            ]
+            result += [{
+                'line': int(match[0]),
+                'code': match[2],
+                'message': match[1],
+                'level': lm.cpplint.get(match[2], 'info'),
+                'linter': 'cpplint',
+            }]
     return result
 
 
@@ -96,15 +92,13 @@ def flintplusplus(filename, c_flag=''):
     _, reports, __ = run(linter, '-j', c_flag, filename)
     reports = json.loads(reports)
     reports = reports['files'][0]['reports']
-    return [
-        {
-            'line': r['line'],
-            'code': r['title'],
-            'message': r['desc'],
-            'level': r['level'],
-            'linter': 'flint++',
-        }
-        for r in reports]
+    return [{
+        'line': r['line'],
+        'code': r['title'],
+        'message': r['desc'],
+        'level': r['level'],
+        'linter': 'flint++',
+    } for r in reports]
 
 
 def rubocop(filename):
@@ -129,16 +123,14 @@ def rubocop(filename):
     for line in reports:
         match = re.search(pattern, line)
         if match:
-            result += [
-                {
-                    'line': int(match.group('line')),
-                    'column': int(match.group('column')),
-                    'code': code[match.group('code')],
-                    'message': match.group('message'),
-                    'level': lm.rubocop.get(match.group('code'), 'info'),
-                    'linter': 'rubocop',
-                }
-            ]
+            result += [{
+                'line': int(match.group('line')),
+                'column': int(match.group('column')),
+                'code': code[match.group('code')],
+                'message': match.group('message'),
+                'level': lm.rubocop.get(match.group('code'), 'info'),
+                'linter': 'rubocop',
+            }]
     return result
 
 
@@ -151,8 +143,8 @@ linters = {
     '.rb': (rubocop, ),
 }
 
-
 # TODO: classify lint messages into type 'error', 'warning' or 'info'
+
 
 def lint(filename):
     extension = splitext(filename)[1]

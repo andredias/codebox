@@ -1,10 +1,8 @@
-import json
 import os
-import sys
 from pathlib import Path
 from subprocess import TimeoutExpired, run
 
-from .models import Command, CodeboxInput, Response, Sourcefiles
+from .models import Command, Response, Sourcefiles
 from .utils import SandboxDirectory
 
 
@@ -34,12 +32,7 @@ def execute(command: Command) -> Response:
     stdout = stderr = ''
     try:
         process = run(
-            command.command,
-            input=command.input,
-            timeout=command.timeout,
-            shell=True,
-            capture_output=True,
-            text=True
+            command.command, input=command.input, timeout=command.timeout, shell=True, capture_output=True, text=True
         )
         stdout = process.stdout
         stderr = process.stderr

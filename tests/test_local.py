@@ -21,32 +21,35 @@ def test_save_sources(tmp_path: Path) -> None:
     assert len(list(tmp_path.glob('**/*'))) == 9
 
 
-@mark.parametrize("command,response", [
-    (
-        Command(type='bash', command='echo 1 2 3', timeout=TIMEOUT),
-        Response(stdout='1 2 3\n', stderr='', exit_code=0)
-    ),
-    (
-        Command(type='bash', command='python -c "print(1, 2, 3)"', timeout=TIMEOUT),
-        Response(stdout='1 2 3\n', stderr='', exit_code=0)
-    ),
-    (
-        Command(type='bash', command=f'sleep {TIMEOUT + 0.05}', timeout=TIMEOUT),
-        Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1)
-    ),
-    (
-        Command(type='bash', command='', timeout=TIMEOUT),
-        Response(stdout='', stderr='', exit_code=0)
-    ),
-    (
-        Command(type='bash', command='nao_existe 1 2 3', timeout=TIMEOUT),
-        Response(stdout='', stderr='/bin/sh: 1: nao_existe: Permission denied\n', exit_code=127)
-    ),
-    (
-        Command(type='bash', command='rm -rf /tmp/try-to-remove.me', timeout=TIMEOUT),  # file created in Dockerfile.test
-        Response(stdout='', stderr="rm: cannot remove '/tmp/try-to-remove.me': Operation not permitted\n", exit_code=1)
-    )
-])
+@mark.parametrize(
+    "command,response",
+    [
+        (
+            Command(type='bash', command='echo 1 2 3',
+                    timeout=TIMEOUT), Response(stdout='1 2 3\n', stderr='', exit_code=0)
+        ),
+        (
+            Command(type='bash', command='python -c "print(1, 2, 3)"',
+                    timeout=TIMEOUT), Response(stdout='1 2 3\n', stderr='', exit_code=0)
+        ),
+        (
+            Command(type='bash', command=f'sleep {TIMEOUT + 0.05}',
+                    timeout=TIMEOUT), Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1)
+        ),
+        (Command(type='bash', command='', timeout=TIMEOUT), Response(stdout='', stderr='', exit_code=0)),
+        (
+            Command(type='bash', command='nao_existe 1 2 3', timeout=TIMEOUT),
+            Response(stdout='', stderr='/bin/sh: 1: nao_existe: Permission denied\n', exit_code=127)
+        ),
+        (
+            Command(type='bash', command='rm -rf /tmp/try-to-remove.me',
+                    timeout=TIMEOUT),  # file created in Dockerfile.test
+            Response(
+                stdout='', stderr="rm: cannot remove '/tmp/try-to-remove.me': Operation not permitted\n", exit_code=1
+            )
+        )
+    ]
+)
 def test_execute(command, response):
     result = execute(command)
     assert response == result

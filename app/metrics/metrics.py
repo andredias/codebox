@@ -7,9 +7,9 @@ See: https://github.com/philbooth/escomplex/blob/master/README.md#metrics
 '''
 
 import json
-
 from os.path import splitext
 from subprocess import check_output
+
 
 def radon(filename):
     '''
@@ -26,9 +26,18 @@ def radon(filename):
     from radon.complexity import SCORE
     from radon.metrics import h_visit
 
-    config = Config(average=True, exclude=None, ignore=None, max='F', min='A', no_assert=True,
-                    order=SCORE, show_closures=True, show_complexity=True,
-                    total_average=False)
+    config = Config(
+        average=True,
+        exclude=None,
+        ignore=None,
+        max='F',
+        min='A',
+        no_assert=True,
+        order=SCORE,
+        show_closures=True,
+        show_complexity=True,
+        total_average=False
+    )
     path = [filename]
     metrics = {}
     metrics['cyclomatic_complexity'] = CCHarvester(path, config)._to_dicts()
@@ -54,10 +63,7 @@ def complexity_report(filename):
     report = json.loads(check_output(('cr', '-t', '-f', 'json', filename), universal_newlines=True))
     metrics = {}
     sloc = report['reports'][0]['aggregate']['sloc']
-    metrics['loc'] = {
-        'sloc': sloc['logical'],
-        'loc': sloc['physical']
-    }
+    metrics['loc'] = {'sloc': sloc['logical'], 'loc': sloc['physical']}
     metrics['hastead'] = report['reports'][0]['aggregate']['halstead']
     return metrics
 

@@ -1,9 +1,9 @@
 fatal = 'fatal'
-error = 'error'                         # something doesn't run
-warning = 'warning'                     # suspicious or could be optimized
+error = 'error'  # something doesn't run
+warning = 'warning'  # suspicious or could be optimized
 coding_style = 'convention'
 refactor = 'refactor'
-info = 'info'     # coding style violation etc.
+info = 'info'  # coding style violation etc.
 
 flake8 = {
     'E1': coding_style,  # Indentation
@@ -88,7 +88,6 @@ flake8 = {
     'W603': warning,  # ‘<>’ is deprecated, use ‘!=’
     'W604': warning,  # backticks are deprecated, use ‘repr()’
 }
-
 
 pylint = {
     'C0102': coding_style,  # Black listed name "%s"
@@ -277,7 +276,8 @@ pylint = {
     'W1300': warning,  # Format string dictionary key should be a string, not %s
     'W1301': warning,  # Unused key %r in format string dictionary
     'W1401': warning,  # Anomalous backslash in string: \'%s\'. String constant might be missing an r prefix.
-    'W1402': warning,  # Anomalous Unicode escape in byte string: \'%s\'. String constant might be missing an r or u prefix.
+    'W1402':
+        warning,  # Anomalous Unicode escape in byte string: \'%s\'. String constant might be missing an r or u prefix.
     'W1501': warning,  # "%s" is not a valid mode for open.
 }
 

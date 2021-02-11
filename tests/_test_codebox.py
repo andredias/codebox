@@ -1,31 +1,5 @@
-import json
-
-from subprocess import call
-
 IMAGE = 'codebox'
 TIMEOUT = 1
-
-
-def run_command(command, input=None):
-    return check_output(command, input=input, shell=True, universal_newlines=True)
-
-
-
-def run(sourcetree=None, commands=None, input_=''):
-    sourcetree = sourcetree or {}
-    commands = commands or []
-    job = {
-        'input': input_,
-        'sourcetree': sourcetree,
-        'commands': commands
-    }
-    job_json = json.dumps(job)
-    # Rodar com versão local do código fonte
-    # print(job_json)
-    # output = run_command('docker run -i --rm -v {0}:/{1}_1:ro --workdir /{1}_1 {1}'.format(CODEBOX_SOURCE_DIR, IMAGE),
-    #                      input=job_json)
-    # output = run(['docker', 'run', '-i', '--rm', 'codebox'], input=job_json, text=True, capture_output=True).stdout
-    return json.loads(output)
 
 
 class TestPython(object):
@@ -153,10 +127,7 @@ class TestCPP(object):
 
     def run(self, source, input_=None, timeout=TIMEOUT):
         sourcetree = {self.filename: source}
-        commands = [
-            ('build', 'g++ %s' % self.filename, timeout),
-            ('run', './a.out', timeout)
-        ]
+        commands = [('build', 'g++ %s' % self.filename, timeout), ('run', './a.out', timeout)]
         return run(sourcetree, commands, input_)
 
     def test_hello_world(self):
@@ -220,10 +191,7 @@ class TestC(object):
 
     def run(self, source, input_=None, timeout=TIMEOUT):
         sourcetree = {self.filename: source}
-        commands = [
-            ('build', 'gcc %s' % self.filename, timeout),
-            ('run', './a.out', timeout)
-        ]
+        commands = [('build', 'gcc %s' % self.filename, timeout), ('run', './a.out', timeout)]
         return run(sourcetree, commands, input_)
 
     def test_c_code(self):
@@ -289,10 +257,7 @@ class TestGo(object):
 
     def run(self, source, input_=None, timeout=TIMEOUT):
         sourcetree = {self.filename: source}
-        commands = [
-            ('build', 'go build -o a.out %s' % self.filename, timeout),
-            ('run', './a.out', timeout)
-        ]
+        commands = [('build', 'go build -o a.out %s' % self.filename, timeout), ('run', './a.out', timeout)]
         return run(sourcetree, commands, input_)
 
     def test_hello_world(self):
@@ -316,9 +281,7 @@ class TestSQLite(object):
 
     def run(self, source, timeout=TIMEOUT):
         sourcetree = {self.filename: source}
-        commands = [
-            ('run', 'sqlite3 -bail -init %s' % self.filename, timeout)
-        ]
+        commands = [('run', 'sqlite3 -bail -init %s' % self.filename, timeout)]
         return run(sourcetree, commands)
 
     def test_help(self):
@@ -423,10 +386,7 @@ int main() {
             'source.cpp': source,
             'source.sh': './a.out',
         }
-        commands = [
-            ('build', ('g++', 'source.cpp'), TIMEOUT),
-            ('run', ('bash', 'source.sh'), TIMEOUT)
-        ]
+        commands = [('build', ('g++', 'source.cpp'), TIMEOUT), ('run', ('bash', 'source.sh'), TIMEOUT)]
         resp = run(sourcetree, commands)
         assert resp['build']['stdout'] == ''
         assert resp['build']['stderr'] == ''
@@ -450,10 +410,7 @@ int main() {
             'source1.sh': './a.out',
             'source2.sh': 'bash source1.sh',
         }
-        commands = [
-            ('build', ('g++', 'source.cpp'), TIMEOUT),
-            ('run', ('bash', 'source2.sh'), TIMEOUT)
-        ]
+        commands = [('build', ('g++', 'source.cpp'), TIMEOUT), ('run', ('bash', 'source2.sh'), TIMEOUT)]
         resp = run(sourcetree, commands)
         assert resp['build']['stdout'] == ''
         assert resp['build']['stderr'] == ''

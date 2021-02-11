@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from tempfile import gettempdir, TemporaryDirectory
+from tempfile import TemporaryDirectory, gettempdir
 from unittest.mock import patch
 
 

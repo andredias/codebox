@@ -10,7 +10,15 @@ pydantic = "^1.7.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
+yapf = "^0.30.0"
+flake8 = "^3.8.4"
+mypy = "^0.800"
+isort = "^5.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+line_length = 120
+multi_line_output = 5

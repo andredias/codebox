@@ -7,11 +7,7 @@ from pytest import mark
 def execute(sourcetree=None, commands=None, input_=''):
     sourcetree = sourcetree or {}
     commands = commands or []
-    job = {
-        'input': input_,
-        'sourcetree': sourcetree,
-        'commands': commands
-    }
+    job = {'input': input_, 'sourcetree': sourcetree, 'commands': commands}
     job_json = json.dumps(job)
     # Rodar com versão local do código fonte
     # print(job_json)
