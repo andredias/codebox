@@ -6,14 +6,14 @@ authors = ["André Felipe Dias <andre.dias@pronus.io>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pydantic = "^1.7.3"
+pydantic = "*"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.2"
-flake8 = "^3.8.4"
-mypy = "^0.800"
-isort = "^5.7.0"
-blue = "^0.6.0"
+pytest = "*"
+flake8 = "*"
+mypy = "*"
+isort = "*"
+blue = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
