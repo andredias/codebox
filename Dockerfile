@@ -1,5 +1,5 @@
 FROM python:3.9-slim
-MAINTAINER André Felipe Dias <andre.dias@pronus.io>
+LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -15,7 +15,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 
 RUN python -m venv /venv
 ENV PATH=/venv/bin:/root/.poetry/bin:${PATH}
-RUN pip install --upgrade pip && pip install dumb-init
+RUN pip install --upgrade pip
 
 # pacotes
 # RUN gem install rubocop
@@ -31,5 +31,4 @@ COPY app/ ./app
 
 USER nobody
 
-ENTRYPOINT ["dumb-init", "--"]
 CMD ["/usr/bin/python", "codebox.py"]
