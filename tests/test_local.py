@@ -22,33 +22,34 @@ def test_save_sources(tmp_path: Path) -> None:
 
 
 @mark.parametrize(
-    "command,response",
+    'command,response',
     [
         (
-            Command(type='bash', command='echo 1 2 3',
-                    timeout=TIMEOUT), Response(stdout='1 2 3\n', stderr='', exit_code=0)
+            Command(type='bash', command='echo 1 2 3', timeout=TIMEOUT),
+            Response(stdout='1 2 3\n', stderr='', exit_code=0),
         ),
         (
-            Command(type='bash', command='python -c "print(1, 2, 3)"',
-                    timeout=TIMEOUT), Response(stdout='1 2 3\n', stderr='', exit_code=0)
+            Command(type='bash', command='python -c "print(1, 2, 3)"', timeout=TIMEOUT),
+            Response(stdout='1 2 3\n', stderr='', exit_code=0),
         ),
         (
-            Command(type='bash', command=f'sleep {TIMEOUT + 0.05}',
-                    timeout=TIMEOUT), Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1)
+            Command(type='bash', command=f'sleep {TIMEOUT + 0.05}', timeout=TIMEOUT),
+            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
         ),
         (Command(type='bash', command='', timeout=TIMEOUT), Response(stdout='', stderr='', exit_code=0)),
         (
             Command(type='bash', command='nao_existe 1 2 3', timeout=TIMEOUT),
-            Response(stdout='', stderr='/bin/sh: 1: nao_existe: Permission denied\n', exit_code=127)
+            Response(stdout='', stderr='/bin/sh: 1: nao_existe: Permission denied\n', exit_code=127),
         ),
         (
-            Command(type='bash', command='rm -rf /tmp/try-to-remove.me',
-                    timeout=TIMEOUT),  # file created in Dockerfile.test
+            Command(
+                type='bash', command='rm -rf /tmp/try-to-remove.me', timeout=TIMEOUT
+            ),  # file created in Dockerfile.test
             Response(
                 stdout='', stderr="rm: cannot remove '/tmp/try-to-remove.me': Operation not permitted\n", exit_code=1
-            )
-        )
-    ]
+            ),
+        ),
+    ],
 )
 def test_execute(command, response):
     result = execute(command)
@@ -68,12 +69,8 @@ projects = [
     ),
     (  # only command, no source
         {},
-        [
-            Command(command='echo 1 2 3'),
-        ],
-        [
-            Response(stdout='1 2 3\n', stderr='', exit_code=0)
-        ],
+        [Command(command='echo 1 2 3')],
+        [Response(stdout='1 2 3\n', stderr='', exit_code=0)],
     ),
     (  # multiple source files and commands
         {  # sources
@@ -82,7 +79,7 @@ projects = [
 
 for line in sys.stdin.readlines():
     sys.stdout.write(line)
-'''
+''',
         },
         [  # commands
             Command(command=f'sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
@@ -98,7 +95,7 @@ for line in sys.stdin.readlines():
             Response(stdout='Olá\nAçúcar', stderr='', exit_code=0),
             Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
             Response(stdout='', stderr='cat: hello.py: No such file or directory\n', exit_code=1),
-            Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0)
+            Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0),
         ],
     ),
 ]

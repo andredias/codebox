@@ -7,9 +7,9 @@ from .utils import SandboxDirectory
 
 
 def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
-    '''
+    """
     Save sources to a temporary directory
-    '''
+    """
     for path, code in sources.items():
         p = dest_dir / path.lstrip(os.sep)
         p.parent.mkdir(parents=True, exist_ok=True)

@@ -28,9 +28,9 @@ def mount_input(code: str, input: str = '') -> None:
 
 @mark.skip
 def test_hello_world():
-    '''
+    """
     Program supposed to run smoothly. But no input needed
-    '''
+    """
     source = 'print("Hello, World!")'
     resp = execute(source)
     assert resp['execution']['stdout'].strip() == 'Hello, World!'
@@ -39,9 +39,9 @@ def test_hello_world():
 
 @mark.skip
 def test_program_error():
-    '''
+    """
     Python program with a syntax error
-    '''
+    """
     source = '''import os
 
 sys.stdout.write('Olá mundo!')'''
@@ -52,9 +52,9 @@ sys.stdout.write('Olá mundo!')'''
 
 @mark.skip
 def test_empty():
-    '''
+    """
     Running a empty source
-    '''
+    """
     resp = execute()
     assert resp == {}
 

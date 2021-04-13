@@ -1,21 +1,15 @@
 {
   "restructuredtext.confPath": "",
-  "python.formatting.provider": "yapf",
-  "python.formatting.yapfArgs": [
-    "--style",
-    "${workspaceFolder}/yapf.ini"
-  ],
   "editor.formatOnSave": true,
   "json.schemas": [],
-  "prettier.tabWidth": 4,
   "emmet.triggerExpansionOnTab": true,
   "files.insertFinalNewline": true,
-  "python.venvFolders": [
-    "${workspaceFolder}/backend/.venv",
-    "${workspaceFolder}/.venv"
-  ],
-  "prettier.semi": false,
   "python.linting.flake8Args": [
     "count=1"
-  ]
+  ],
+  "python.formatting.blackPath": "blue",
+  "python.formatting.blackArgs": [
+    "-l 120"
+  ],
+  "python.formatting.provider": "black"
 }

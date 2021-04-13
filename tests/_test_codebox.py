@@ -12,18 +12,18 @@ class TestPython(object):
         return run(sourcetree, commands, input_)
 
     def test_hello_world(self):
-        '''
+        """
         Program supposed to run smoothly. But no input needed
-        '''
+        """
         source = 'print("Hello, World!")'
         resp = self.run(source)
         assert resp['execution']['stdout'].strip() == 'Hello, World!'
         assert resp['execution']['stderr'] == ''
 
     def test_program_error(self):
-        '''
+        """
         Python program with a syntax error
-        '''
+        """
         source = '''import os
 
 sys.stdout.write('Olá mundo!')'''
@@ -32,9 +32,9 @@ sys.stdout.write('Olá mundo!')'''
         assert "NameError: name 'sys' is not defined" in resp['execution']['stderr']
 
     def test_empty(self):
-        '''
+        """
         Running a empty source
-        '''
+        """
         resp = run()
         assert resp == {}
 
@@ -131,9 +131,9 @@ class TestCPP(object):
         return run(sourcetree, commands, input_)
 
     def test_hello_world(self):
-        '''
+        """
         Program supposed to run smoothly. But no input needed
-        '''
+        """
         source = '''#include <iostream>
 using namespace std;
 
@@ -146,9 +146,9 @@ int main() {
         assert resp['run']['stderr'] == ''
 
     def test_empty_source(self):
-        '''
+        """
         Running a empty source
-        '''
+        """
         resp = self.run('')
         assert resp['build']['exit_code'] != 0
 
@@ -295,9 +295,12 @@ insert into tbl1 values('hello!', 10);
 insert into tbl1 values('goodbye', 20);
 select * from tbl1;'''
         resp = self.run(source)
-        assert resp['run']['stdout'] == '''hello!|10
+        assert (
+            resp['run']['stdout']
+            == '''hello!|10
 goodbye|20
 '''
+        )
 
     def test_another_db(self):
         source = '''create table department(
@@ -325,7 +328,9 @@ insert into department values(3,'Marketing','Los Angeles');
 select * from employee;
 select * from department;'''
         resp = self.run(source)
-        assert resp['run']['stdout'] == '''101|John Smith|CEO
+        assert (
+            resp['run']['stdout']
+            == '''101|John Smith|CEO
 102|Raj Reddy|Sysadmin
 103|Jason Bourne|Developer
 104|Jane Smith|Sale Manager
@@ -334,6 +339,7 @@ select * from department;'''
 2|Technology|San Jose
 3|Marketing|Los Angeles
 '''
+        )
 
 
 class TestBash(object):

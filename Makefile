@@ -4,7 +4,7 @@ check:
 	@echo
 	isort --diff -c --skip-glob '*.venv' .
 	@echo
-	yapf -vv --diff --recursive --style ../yapf.ini --exclude '*.venv' .
+	blue --check --diff --color .
 	@echo
 	mypy fastapi_api
 	mypy quart_api

@@ -11,12 +11,12 @@ def create_sandbox_dir(suffix=None, prefix=None, dir=None) -> str:
 
 
 class SandboxDirectory(TemporaryDirectory):
-    '''
+    """
     Extends TemporaryDirectory to automatically change to directory on enter
     and change it back on exit.
     Also, uses the fixed name of 'sandbox' during TESTING to make them possible
     since the temporary directory name might be part of the response traceback.
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         if 'TESTING' in os.environ:

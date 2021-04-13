@@ -3,4 +3,4 @@ syntax: glob
 *.orig
 *~
 *.egg-info
-venv
+.venv
