@@ -84,7 +84,7 @@ for line in sys.stdin.readlines():
         [  # commands
             Command(command=f'sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
             Command(command='python main.py'),
-            Command(command='python hello/hello.py', input='Olá\nAçúcar'),
+            Command(command='python hello/hello.py', stdin='Olá\nAçúcar'),
             Command(command='python hello/hello.py', timeout=TIMEOUT),
             Command(command='cat hello.py'),
             Command(command='cat main.py'),

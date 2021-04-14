@@ -32,7 +32,7 @@ def execute(command: Command) -> Response:
     stdout = stderr = ''
     try:
         process = run(
-            command.command, input=command.input, timeout=command.timeout, shell=True, capture_output=True, text=True
+            command.command, input=command.stdin, timeout=command.timeout, shell=True, capture_output=True, text=True
         )
         stdout = process.stdout
         stderr = process.stderr
