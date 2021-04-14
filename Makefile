@@ -6,8 +6,7 @@ check:
 	@echo
 	blue --check --diff --color .
 	@echo
-	mypy fastapi_api
-	mypy quart_api
+	mypy .
 	@echo
 	flake8 --config flake8.ini .
 
