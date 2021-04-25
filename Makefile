@@ -22,4 +22,4 @@ test_in_container:
 	docker run -it --rm --init \
 	           -v $(PWD)/app:/app \
 	           -v $(PWD)/tests/:/tests \
-			   codebox-test pytest -svx
+			   codebox-test pytest -svx tests/test_in_container.py

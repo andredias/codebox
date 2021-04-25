@@ -2,10 +2,16 @@ from pathlib import Path
 
 from pytest import mark
 
+from .conftest import run_inside_container
+
 from app.codebox import execute, run_project, save_sources  # isort:skip
 from app.models import Command, Response  # isort:skip
 
+
 TIMEOUT = 0.1
+
+# Skip all test functions of a module
+pytestmark = run_inside_container
 
 
 def test_save_sources(tmp_path: Path) -> None:

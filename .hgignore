@@ -5,3 +5,4 @@ syntax: glob
 *.egg-info
 .venv
 .mypy_cache
+.pytest_cache
