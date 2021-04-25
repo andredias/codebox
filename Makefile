@@ -1,6 +1,6 @@
 PWD := $(shell pwd)
 
-check:
+lint:
 	@echo
 	isort --diff -c --skip-glob '*.venv' .
 	@echo
@@ -10,7 +10,7 @@ check:
 	@echo
 	flake8 --config flake8.ini .
 
-test: test_in_container
+test: lint test_in_container
 
 test_in_container:
 	docker build -t codebox .

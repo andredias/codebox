@@ -17,16 +17,6 @@ def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
     return
 
 
-def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]:
-    responses = []
-    with SandboxDirectory() as sandbox:
-        save_sources(sandbox, sources)
-        for command in commands:
-            resp = execute(command)
-            responses.append(resp)
-    return responses
-
-
 def execute(command: Command) -> Response:
     exit_code = -1
     stdout = stderr = ''
@@ -49,3 +39,13 @@ def execute(command: Command) -> Response:
         exit_code=exit_code,
     )
     return response
+
+
+def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]:
+    responses = []
+    with SandboxDirectory() as sandbox:
+        save_sources(sandbox, sources)
+        for command in commands:
+            resp = execute(command)
+            responses.append(resp)
+    return responses
