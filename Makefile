@@ -10,6 +10,10 @@ lint:
 	@echo
 	flake8 --config flake8.ini .
 
+format_code:
+	isort .
+	blue .
+
 test: lint test_in_container
 
 test_in_container:
