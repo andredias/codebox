@@ -1,7 +1,8 @@
 FROM codebox
 
 USER root
-RUN POETRY_VIRTUALENVS_CREATE=false poetry install
+ENV PATH=/venv/bin:${PATH}
+RUN pip install pytest
 COPY tests ./tests
 RUN ln -s /tmp .pytest_cache; \
     echo '123' > /tmp/try-to-remove.me  # used in tests to check for permissions

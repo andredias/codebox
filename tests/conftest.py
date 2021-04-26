@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 from subprocess import run
 
-import pytest
+from pytest import mark
+
+from app.models import Command, Response
 
 os.environ['TESTING'] = 'yes'
 
@@ -23,5 +25,53 @@ def inside_container() -> bool:
     )
 
 
-run_inside_container = pytest.mark.skipif(not inside_container(), reason='not running inside a container')
-run_outside_container = pytest.mark.skipif(inside_container(), reason='running inside a container')
+run_inside_container = mark.skipif(not inside_container(), reason='not running inside a container')
+run_outside_container = mark.skipif(inside_container(), reason='running inside a container')
+
+
+TIMEOUT = 0.1
+
+
+projects = [
+    (  # empty project
+        {},
+        [],
+        [],
+    ),
+    (  # only source, no command
+        {'hello.py': 'print("Olá mundo!")\n'},
+        [],
+        [],
+    ),
+    (  # only command, no source
+        {},
+        [Command(command='echo 1 2 3')],
+        [Response(stdout='1 2 3\n', stderr='', exit_code=0)],
+    ),
+    (  # multiple source files and commands
+        {  # sources
+            'main.py': 'print("Olá mundo!")\n',
+            'hello/hello.py': '''import sys
+
+for line in sys.stdin.readlines():
+    sys.stdout.write(line)
+''',
+        },
+        [  # commands
+            Command(command=f'sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
+            Command(command='python main.py'),
+            Command(command='python hello/hello.py', stdin='Olá\nAçúcar'),
+            Command(command='python hello/hello.py', timeout=TIMEOUT),
+            Command(command='cat hello.py'),
+            Command(command='cat main.py'),
+        ],
+        [
+            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
+            Response(stdout='Olá mundo!\n', stderr='', exit_code=0),
+            Response(stdout='Olá\nAçúcar', stderr='', exit_code=0),
+            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
+            Response(stdout='', stderr='cat: hello.py: No such file or directory\n', exit_code=1),
+            Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0),
+        ],
+    ),
+]

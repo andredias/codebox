@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.9-slim as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -17,18 +17,21 @@ RUN python -m venv /venv
 ENV PATH=/venv/bin:/root/.poetry/bin:${PATH}
 RUN pip install --upgrade pip
 
-# pacotes
-# RUN gem install rubocop
-# RUN npm install -g sloc
-# RUN npm install -g complexity-report
-# RUN pip3 install -U mercurial
-
 WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
 RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-dev
 
+# ----
+
+FROM python:3.9-slim as final
+
+COPY --from=builder /venv /venv
+ENV PATH=/venv/bin:${PATH}
+
+WORKDIR /codebox
+COPY main.py .
 COPY app/ ./app
 
 USER nobody
 
-CMD ["/usr/bin/python", "codebox.py"]
+CMD ["/venv/bin/python", "main.py"]
