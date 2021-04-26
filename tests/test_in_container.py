@@ -63,15 +63,32 @@ def test_execute(command, response):
     assert response == result
 
 
-@mark.parametrize('sources,commands,responses', projects)
+projects_1 = projects + [
+    (  # work on test_in_container but not on test_container
+        {  # sources
+            'hello.py': '''import sys
+
+for line in sys.stdin.readlines():
+    sys.stdout.write(line)
+''',
+        },
+        [  # commands
+            Command(command='python hello.py', timeout=TIMEOUT),
+        ],
+        [
+            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
+        ],
+    ),
+]
+
+
+@mark.parametrize('sources,commands,responses', projects_1)
 def test_run_project(sources, commands, responses):
     assert run_project(sources, commands) == responses
 
 
-def test_main(capsys, monkeypatch):
-    sources = projects[-1][0]
-    commands = projects[-1][1][:2]
-    responses = projects[-1][2][:2]
+@mark.parametrize('sources,commands,responses', projects_1)
+def test_main(capsys, monkeypatch, sources, commands, responses):
     project = ProjectCore(sources=sources, commands=commands).json()
     monkeypatch.setattr('sys.stdin', io.StringIO(project))
     main()

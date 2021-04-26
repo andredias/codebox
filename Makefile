@@ -14,7 +14,7 @@ format_code:
 	isort .
 	blue .
 
-test: lint test_in_container
+test: lint test_in_container test_container
 
 test_in_container:
 	docker build -t codebox .
@@ -23,3 +23,7 @@ test_in_container:
 	           -v $(PWD)/app:/app \
 	           -v $(PWD)/tests/:/tests \
 			   codebox-test pytest -svx tests/test_in_container.py
+
+test_container:
+	docker build -t codebox .
+	pytest -svx tests/test_container.py
