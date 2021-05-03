@@ -1,3 +1,35 @@
+FROM python:3.9-slim as nsjail-builder
+
+RUN apt-get -y update && apt-get install -y \
+    autoconf \
+    bison \
+    flex \
+    gcc \
+    g++ \
+    git \
+    libprotobuf-dev \
+    libnl-route-3-dev \
+    libtool \
+    make \
+    pkg-config \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN latest_tag=$(git ls-remote --tags --exit-code --refs https://github.com/google/nsjail.git \
+    | sed -E 's/^[[:xdigit:]]+[[:space:]]+refs\/tags\/(.+)/\1/g' | tail -n1); \
+    git clone \
+    -b "$latest_tag" \
+    --single-branch \
+    --depth 1 \
+    https://github.com/google/nsjail.git /nsjail
+WORKDIR /nsjail
+RUN make
+RUN chmod +x nsjail
+
+
+# ---------------------------------------------------------
+
+
 FROM python:3.9-slim as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
@@ -21,17 +53,21 @@ WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
 RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-dev
 
-# ----
+# ---------------------------------------------------------
 
 FROM python:3.9-slim as final
 
+RUN apt-get -y update && apt-get install -y \
+    libnl-route-3-200 \
+    libprotobuf17 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /venv /venv
+COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
 ENV PATH=/venv/bin:${PATH}
 
 WORKDIR /codebox
 COPY main.py .
 COPY app/ ./app
-
-USER nobody
 
 CMD ["/venv/bin/python", "main.py"]

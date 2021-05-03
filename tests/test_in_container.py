@@ -51,9 +51,13 @@ def test_save_sources(tmp_path: Path) -> None:
             Response(stdout='', stderr='/bin/sh: 1: nao_existe: not found\n', exit_code=127),
         ),
         (
-            Command(command='rm -rf /tmp/try-to-remove.me', timeout=TIMEOUT),  # file created in Dockerfile.test
+            Command(
+                command='rm -rf /tmp/try-to-remove.me', timeout=TIMEOUT
+            ),  # file created in Dockerfile.test
             Response(
-                stdout='', stderr="rm: cannot remove '/tmp/try-to-remove.me': Operation not permitted\n", exit_code=1
+                stdout='',
+                stderr="rm: cannot remove '/tmp/try-to-remove.me': Operation not permitted\n",
+                exit_code=1,
             ),
         ),
     ],

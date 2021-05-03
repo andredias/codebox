@@ -3,11 +3,24 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, gettempdir
 from unittest.mock import patch
 
+from .models import Sourcefiles
+
 
 def create_sandbox_dir(suffix=None, prefix=None, dir=None) -> str:
     tmpdir = Path(gettempdir(), 'sandbox')
     tmpdir.mkdir()
     return str(tmpdir)
+
+
+def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
+    """
+    Save sources to a temporary directory
+    """
+    for path, code in sources.items():
+        p = dest_dir / path.lstrip(os.sep)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(code)
+    return
 
 
 class SandboxDirectory(TemporaryDirectory):

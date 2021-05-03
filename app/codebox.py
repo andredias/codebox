@@ -1,20 +1,7 @@
-import os
-from pathlib import Path
 from subprocess import TimeoutExpired, run
 
 from .models import Command, Response, Sourcefiles
-from .utils import SandboxDirectory
-
-
-def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
-    """
-    Save sources to a temporary directory
-    """
-    for path, code in sources.items():
-        p = dest_dir / path.lstrip(os.sep)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(code)
-    return
+from .utils import SandboxDirectory, save_sources
 
 
 def execute(command: Command) -> Response:
@@ -22,7 +9,12 @@ def execute(command: Command) -> Response:
     stdout = stderr = ''
     try:
         process = run(
-            command.command, input=command.stdin, timeout=command.timeout, shell=True, capture_output=True, text=True
+            command.command,
+            input=command.stdin,
+            timeout=command.timeout,
+            shell=True,
+            capture_output=True,
+            text=True,
         )
         stdout = process.stdout
         stderr = process.stderr

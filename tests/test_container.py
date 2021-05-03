@@ -16,7 +16,7 @@ def run_project_in_container(project_core: ProjectCore) -> list[Response]:
     Run the project in a sandbox container
     """
     project_json = project_core.json(exclude_unset=True)
-    docker_cmd = ['docker', 'run', '-i', '--rm', '-v', '/tmp:/tmp', 'codebox']
+    docker_cmd = ['docker', 'run', '-i', '--rm', '--privileged', '-v', '/tmp:/tmp', 'codebox']
     proc = run(docker_cmd, input=project_json, capture_output=True, text=True)
     assert proc.stderr == ''
     result = parse_raw_as(list[Response], proc.stdout)

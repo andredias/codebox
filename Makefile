@@ -23,6 +23,10 @@ test_in_container:
 	           -v $(PWD)/app:/app \
 	           -v $(PWD)/tests/:/tests \
 			   codebox-test pytest -svx tests/test_in_container.py
+	docker run -it --rm --init --privileged --user root \
+	           -v $(PWD)/app:/app \
+	           -v $(PWD)/tests/:/tests \
+			   codebox-test pytest -svx tests/test_in_container_nsjail.py
 
 test_container:
 	docker build -t codebox .
