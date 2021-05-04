@@ -6,9 +6,7 @@ from loguru import logger
 from . import config
 from .codebox import run_project
 from .models import ProjectCore, Response
-from .utils import inside_container
 
-assert inside_container()
 
 app = FastAPI()
 

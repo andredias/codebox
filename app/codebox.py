@@ -17,12 +17,13 @@ from loguru import logger
 
 from . import config
 from .models import Command, Response, Sourcefiles
-from .utils import SandboxDirectory, save_sources
+from .utils import SandboxDirectory, inside_container, save_sources
+
+
+assert inside_container()
 
 # [level][timestamp][PID]? function_signature:line_no? message
-LOG_PATTERN = re.compile(
-    r'\[(?P<level>(I)|[DWEF])\]\[.+?\](?(2)|(?P<func>\[\d+\] .+?:\d+ )) ?(?P<msg>.+)'
-)
+LOG_PATTERN = re.compile(r'\[(?P<level>(I)|[DWEF])\]\[.+?\](?(2)|(?P<func>\[\d+\] .+?:\d+ )) ?(?P<msg>.+)')
 LOG_BLACKLIST = ('Process will be ',)
 
 
