@@ -1,7 +1,11 @@
 PWD := $(shell pwd)
 
-run:
-	docker run -it --rm --init --privileged -p 8000:8000 -v $(PWD)/app:/codebox/app codebox
+run: build
+	docker run -it --rm --init --privileged -p 8000:8000 codebox
+
+dev:
+	docker run -it --rm --init --privileged -p 8000:8000 \
+		-v $(PWD)/app:/codebox/app codebox
 
 lint:
 	@echo
@@ -22,6 +26,5 @@ build:
 
 test: lint test_container
 
-test_container:
-	docker build -t codebox .
+test_container: build
 	pytest -svx

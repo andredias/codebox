@@ -68,6 +68,6 @@ ENV PATH=/venv/bin:${PATH}
 
 WORKDIR /codebox
 COPY hypercorn.toml .
-COPY app/ .
+COPY app/ ./app
 
 CMD ["hypercorn", "--config=hypercorn.toml", "app.main:app"]
