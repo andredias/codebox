@@ -1,18 +1,39 @@
-import json
 import sys
 
+from fastapi import FastAPI
+from loguru import logger
+
+from . import config
 from .codebox import run_project
-from .models import ProjectCore
+from .models import ProjectCore, Response
+from .utils import inside_container
+
+assert inside_container()
+
+app = FastAPI()
 
 
-def main():
-    project = ProjectCore.parse_raw(sys.stdin.read())
+@app.post('/execute', response_model=list[Response])
+def execute(project: ProjectCore):
     responses = run_project(project.sources, project.commands)
-    responses = [resp.dict() for resp in responses]
-    output = json.dumps(responses, ensure_ascii=False)
-    print(output)
-    return
+    return responses
 
 
-if __name__ == '__main__':
-    main()
+@app.on_event('startup')
+async def startup_event():
+    setup_logger()
+
+
+@app.on_event('shutdown')
+async def shutdown_event():
+    ...
+
+
+def setup_logger():
+    """
+    Configure Loguru's logger
+    """
+    logger.remove()  # remove standard handler
+    logger.add(
+        sys.stderr, level=config.LOG_LEVEL, colorize=True, backtrace=config.DEBUG, enqueue=True
+    )  # reinsert it to make it run in a different thread

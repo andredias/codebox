@@ -67,7 +67,7 @@ COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
 ENV PATH=/venv/bin:${PATH}
 
 WORKDIR /codebox
-COPY main.py .
-COPY app/ ./app
+COPY hypercorn.toml .
+COPY app/ .
 
-CMD ["/venv/bin/python", "main.py"]
+CMD ["hypercorn", "--config=hypercorn.toml", "app.main:app"]

@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
 
-DEBUG: bool = os.getenv('ENV', 'development') == 'development'
+ENV: str = os.getenv('ENV', 'production').lower()
+DEBUG: bool = ENV != 'production'
+TESTING: bool = ENV == 'testing'
+LOG_LEVEL: str = DEBUG and 'DEBUG' or 'INFO'
 
-TIME_LIMIT: float = 1
+TIMEOUT: float = 0.1
 
 NSJAIL_PATH: str = os.getenv('NSJAIL_PATH', '/usr/sbin/nsjail')
 NSJAIL_CFG: str = os.getenv('NSJAIL_CFG', str(Path(__file__).parent / 'nsjail.cfg'))
@@ -13,7 +16,3 @@ CGROUP_PIDS_PATH: Path = Path('/sys/fs/cgroup/pids')
 
 CGROUP_MEM_MAX: int = 32_000_000  # 32 MB
 CGROUP_PIDS_MAX: int = 1
-
-# Limit of stdout bytes we consume before terminating nsjail
-OUTPUT_MAX: int = 100_000
-READ_CHUNK_SIZE: int = 10_000  # chars

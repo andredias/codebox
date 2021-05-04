@@ -1,9 +1,0 @@
-FROM codebox
-
-USER root
-RUN pip install pytest
-COPY tests ./tests
-RUN ln -s /tmp .pytest_cache; \
-    echo '123' > /tmp/try-to-remove.me  # used in tests to check for permissions
-
-USER nobody

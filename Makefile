@@ -1,5 +1,8 @@
 PWD := $(shell pwd)
 
+run:
+	docker run -it --rm --init --privileged -p 8000:8000 -v $(PWD)/app:/codebox/app codebox
+
 lint:
 	@echo
 	isort --diff -c --skip-glob '*.venv' .
@@ -14,20 +17,11 @@ format_code:
 	isort .
 	blue .
 
-test: lint test_in_container test_container
-
-test_in_container:
+build:
 	docker build -t codebox .
-	docker build -t codebox-test -f Dockerfile.test .
-	docker run -it --rm --init \
-	           -v $(PWD)/app:/app \
-	           -v $(PWD)/tests/:/tests \
-			   codebox-test pytest -svx tests/test_in_container.py
-	docker run -it --rm --init --privileged --user root \
-	           -v $(PWD)/app:/app \
-	           -v $(PWD)/tests/:/tests \
-			   codebox-test pytest -svx tests/test_in_container_nsjail.py
+
+test: lint test_container
 
 test_container:
 	docker build -t codebox .
-	pytest -svx tests/test_container.py
+	pytest -svx

@@ -1,75 +1,32 @@
 import os
 from pathlib import Path
-from subprocess import run
+from subprocess import DEVNULL, check_call
+from time import sleep
+from typing import AsyncIterable, Generator
 
-from pytest import mark
+from httpx import AsyncClient
+from pytest import fixture
 
-from app.models import Command, Response
-
-os.environ['TESTING'] = 'yes'
+os.environ['ENV'] = 'testing'
 
 
-def inside_container() -> bool:
-    """
-    The developer's machine is not sandboxed and should not run any testing snippets, at the risk of being damaged.
-    So, it is important to make sure that the code execution only happens inside a container.
-
-    See:
-    * https://stackoverflow.com/questions/23513045/how-to-check-if-a-process-is-running-inside-docker-container
-    * https://stackoverflow.com/a/25518538/266362
-    """
-    return (
-        Path('/.dockerenv').exists()
-        or Path('/run/.containerenv').exists()
-        or bool(run(['grep', ':/docker', '/proc/1/cgroup'], capture_output=True, text=True).stdout)
+@fixture(scope='session')
+def docker() -> Generator:
+    app_dir = Path(__file__).parent.parent / 'app'
+    check_call(
+        f'docker run -d --privileged --rm -p 8001:8000 -v {app_dir}:/codebox/app '
+        '-e ENV=development --name codebox-testing codebox',
+        stdout=DEVNULL,
+        shell=True,
     )
+    sleep(1)
+    try:
+        yield
+    finally:
+        check_call('docker stop -t 0 codebox-testing', stdout=DEVNULL, shell=True)
 
 
-run_inside_container = mark.skipif(not inside_container(), reason='not running inside a container')
-run_outside_container = mark.skipif(inside_container(), reason='running inside a container')
-
-
-TIMEOUT = 0.1
-
-
-projects = [
-    (  # empty project
-        {},
-        [],
-        [],
-    ),
-    (  # only source, no command
-        {'hello.py': 'print("Olá mundo!")\n'},
-        [],
-        [],
-    ),
-    (  # only command, no source
-        {},
-        [Command(command='echo 1 2 3')],
-        [Response(stdout='1 2 3\n', stderr='', exit_code=0)],
-    ),
-    (  # multiple source files and commands
-        {  # sources
-            'main.py': 'print("Olá mundo!")\n',
-            'hello/hello.py': '''import sys
-
-for line in sys.stdin.readlines():
-    sys.stdout.write(line)
-''',
-        },
-        [  # commands
-            Command(command=f'sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
-            Command(command='python main.py'),
-            Command(command='python hello/hello.py', stdin='Olá\nAçúcar'),
-            Command(command='cat hello.py'),
-            Command(command='cat main.py'),
-        ],
-        [
-            Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1),
-            Response(stdout='Olá mundo!\n', stderr='', exit_code=0),
-            Response(stdout='Olá\nAçúcar', stderr='', exit_code=0),
-            Response(stdout='', stderr='cat: hello.py: No such file or directory\n', exit_code=1),
-            Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0),
-        ],
-    ),
-]
+@fixture
+async def client(docker) -> AsyncIterable[AsyncClient]:
+    async with AsyncClient(base_url='http://localhost:8001') as client:
+        yield client

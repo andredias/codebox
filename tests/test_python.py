@@ -1,16 +1,22 @@
-from pytest import mark
+from httpx import AsyncClient
+from pydantic import parse_obj_as
+from pytest import fixture, mark
 
-from .conftest import run_inside_container
-
-from app import config  # isort:skip
-from app.models import Command, Response  # isort:skip
-from app.nsjail import run_project  # isort:skip
+from app.config import CGROUP_MEM_MAX, TIMEOUT
+from app.models import Command, ProjectCore, Response
 
 
-TIMEOUT = 0.1
+@fixture
+def run_python(client: AsyncClient):
+    async def _run_python(code: str) -> Response:
+        sources = {'test.py': code}
+        command = Command(command='/usr/local/bin/python test.py')
+        resp = await client.post(
+            '/execute', json=ProjectCore(sources=sources, commands=[command]).dict()
+        )
+        return Response(**(resp.json()[0]))
 
-# Skip all test functions of a module
-pytestmark = run_inside_container
+    return _run_python
 
 
 projects = [
@@ -59,62 +65,49 @@ for line in sys.stdin.readlines():
             Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0),
         ],
     ),
-    (
-        # 'time out error',
-        {
-            'hello.py': '''import sys
-
-for line in sys.stdin.readlines():
-    sys.stdout.write(line)
-''',
-        },
-        [Command(command='/usr/local/bin/python hello.py', timeout=TIMEOUT)],
-        [Response(stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1)],
-    ),
 ]
 
 
 @mark.parametrize('sources,commands,responses', projects)
-def test_run_project(sources, commands, responses):
-    assert run_project(sources, commands) == responses
+async def test_run_project(client, sources, commands, responses):
+    results = await client.post(
+        '/execute', json=ProjectCore(sources=sources, commands=commands).dict()
+    )
+    assert results.status_code == 200
+    assert parse_obj_as(list[Response], results.json()) == responses
 
 
-def run_python(code) -> Response:
-    command = Command(command='/usr/local/bin/python test.py')
-    return run_project({'test.py': code}, [command])[0]
-
-
-def test_while_true():
+async def test_while_true(run_python):
     code = 'while True:\n    pass'
-    assert run_python(code) == Response(
+    assert (await run_python(code)) == Response(
         stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1
     )
 
 
-def test_max_mem_test():
-    code = f"x = ' ' * {config.CGROUP_MEM_MAX + 1_000}"
-    assert run_python(code) == Response(stdout='', stderr='', exit_code=137)
+async def test_max_mem_test(run_python):
+    code = f"x = ' ' * {CGROUP_MEM_MAX + 1_000}"
+    assert (await run_python(code)) == Response(stdout='', stderr='', exit_code=137)
 
 
-def test_kill_process():
+async def test_kill_process(run_python):
     code = '''import subprocess
 print(subprocess.check_output('kill -9 6', shell=True).decode())
 '''
-    resp = run_python(code)
+    resp = await run_python(code)
     assert 'BlockingIOError: [Errno 11] Resource temporarily unavailable' in resp.stderr
     assert resp.exit_code != 0
 
 
-def test_write_file_to_sandbox_and_tmp():
+async def test_write_file_to_sandbox_and_tmp(run_python):
     code = '''from pathlib import Path
 
 Path('/sandbox/blabla.txt').write_text('bla bla bla')
 Path('/tmp/blabla.txt').write_text('bla bla bla')
 '''
-    assert run_python(code) == Response(stdout='', stderr='', exit_code=0)
+    assert (await run_python(code)) == Response(stdout='', stderr='', exit_code=0)
 
 
-def test_write_in_protected_dirs():
+async def test_write_in_protected_dirs(run_python):
     code = '''from pathlib import Path
 
 count = 0
@@ -126,20 +119,20 @@ for path in ['/', '/bin', '/etc', '/lib', '/lib64', '/usr']:
 
 print(count)
 '''
-    assert run_python(code).stdout == '6\n'
+    assert (await run_python(code)).stdout == '6\n'
 
 
-def test_forkbomb_recode_unavailable():
+async def test_forkbomb_recode_unavailable(run_python):
     code = '''import os
 while 1:
     os.fork()
     '''
-    resp = run_python(code)
+    resp = await run_python(code)
     assert 'BlockingIOError: [Errno 11] Resource temporarily unavailable' in resp.stderr
     assert resp.exit_code != 0
 
 
-def test_multiprocessing_shared_memory_disabled():
+async def test_multiprocessing_shared_memory_disabled(run_python):
     code = '''
 from multiprocessing.shared_memory import SharedMemory
 try:
@@ -147,6 +140,6 @@ try:
 except FileExistsError:
     pass
 '''
-    resp = run_python(code)
+    resp = await run_python(code)
     assert 'OSError: [Errno 38] Function not implemented' in resp.stderr
     assert resp.exit_code != 0

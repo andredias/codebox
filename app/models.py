@@ -3,6 +3,8 @@ from typing import Optional
 import orjson
 from pydantic import BaseModel as _BaseModel
 
+from . import config
+
 # ref: https://pydantic-docs.helpmanual.io/usage/exporting_models/#custom-json-deserialisation
 
 
@@ -22,7 +24,7 @@ Sourcefiles = dict[str, str]
 
 class Command(BaseModel):
     command: str
-    timeout: float = 0.1
+    timeout: float = config.TIMEOUT
     stdin: Optional[str] = None
 
 
