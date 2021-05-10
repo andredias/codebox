@@ -19,11 +19,12 @@ from . import config
 from .models import Command, Response, Sourcefiles
 from .utils import SandboxDirectory, inside_container, save_sources
 
-
 assert inside_container()
 
 # [level][timestamp][PID]? function_signature:line_no? message
-LOG_PATTERN = re.compile(r'\[(?P<level>(I)|[DWEF])\]\[.+?\](?(2)|(?P<func>\[\d+\] .+?:\d+ )) ?(?P<msg>.+)')
+LOG_PATTERN = re.compile(
+    r'\[(?P<level>(I)|[DWEF])\]\[.+?\](?(2)|(?P<func>\[\d+\] .+?:\d+ )) ?(?P<msg>.+)'
+)
 LOG_BLACKLIST = ('Process will be ',)
 
 
@@ -159,10 +160,12 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
     responses = []
     with SandboxDirectory() as sandbox:
         os.chmod(sandbox, 0o0777)  # to be used in nsjail later
-        logger.debug(sources)
+        logger.info(sources)
         save_sources(sandbox, sources)
         with NSJail() as nsjail:
             for command in commands:
+                logger.info(command)
                 resp = nsjail.execute(command)
+                logger.info(resp)
                 responses.append(resp)
     return responses
