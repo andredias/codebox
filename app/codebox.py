@@ -17,7 +17,7 @@ from loguru import logger
 
 from . import config
 from .models import Command, Response, Sourcefiles
-from .utils import SandboxDirectory, inside_container, save_sources
+from .utils import SandboxDirectory, inside_container, save_source
 
 assert inside_container()
 
@@ -161,7 +161,14 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
     with SandboxDirectory() as sandbox:
         os.chmod(sandbox, 0o0777)  # to be used in nsjail later
         logger.info(sources)
-        save_sources(sandbox, sources)
+        for filepath, contents in sources.items():
+            try:
+                save_source(sandbox, filepath, contents)
+            except Exception as error:
+                logger.info(error)
+                responses.append(Response(stderr=str(error), exit_code=-1))
+        if responses:
+            return responses
         with NSJail() as nsjail:
             for command in commands:
                 logger.info(command)

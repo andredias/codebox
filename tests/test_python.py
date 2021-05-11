@@ -65,6 +65,11 @@ for line in sys.stdin.readlines():
             Response(stdout='print("Olá mundo!")\n', stderr='', exit_code=0),
         ],
     ),
+    (
+        {'invalid/path/../../../../usr/bin/help.py': 'test'},
+        [],
+        [Response(stderr='Invalid file path: /usr/bin/help.py', exit_code=-1)],
+    ),
 ]
 
 
@@ -135,6 +140,7 @@ while 1:
 async def test_multiprocessing_shared_memory_disabled(run_python):
     code = '''
 from multiprocessing.shared_memory import SharedMemory
+
 try:
     SharedMemory('test', create=True, size=16)
 except FileExistsError:

@@ -4,24 +4,11 @@ from subprocess import run
 from tempfile import TemporaryDirectory, gettempdir
 from unittest.mock import patch
 
-from .models import Sourcefiles
 
-
-def create_sandbox_dir(suffix=None, prefix=None, dir=None) -> str:
-    tmpdir = Path(gettempdir(), 'sandbox')
+def _create_sandbox_dir(suffix=None, prefix=None, dir=None) -> str:
+    tmpdir = Path(dir or gettempdir(), 'sandbox')
     tmpdir.mkdir()
     return str(tmpdir)
-
-
-def save_sources(dest_dir: Path, sources: Sourcefiles) -> None:
-    """
-    Save sources to a temporary directory
-    """
-    for path, code in sources.items():
-        p = dest_dir / path.lstrip(os.sep)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(code)
-    return
 
 
 class SandboxDirectory(TemporaryDirectory):
@@ -34,7 +21,7 @@ class SandboxDirectory(TemporaryDirectory):
 
     def __init__(self, *args, **kwargs):
         if 'TESTING' in os.environ:
-            with patch('tempfile.mkdtemp', wraps=create_sandbox_dir):
+            with patch('tempfile.mkdtemp', wraps=_create_sandbox_dir):
                 super().__init__(*args, **kwargs)
         else:
             kwargs.setdefault('prefix', 'sandbox_')
@@ -49,6 +36,15 @@ class SandboxDirectory(TemporaryDirectory):
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.prev_dir)
         super().__exit__(exc_type, exc_value, traceback)
+
+
+def save_source(dest_dir: Path, filepath: str, contents: str) -> None:
+    path = (dest_dir / filepath.lstrip(os.sep)).resolve()
+    # checks for malicious or malformed paths
+    if not str(path).startswith(str(dest_dir)):
+        raise ValueError(f'Invalid file path: {path}')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(contents)
 
 
 def inside_container() -> bool:
