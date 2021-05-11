@@ -8,8 +8,6 @@
     "count=1"
   ],
   "python.formatting.blackPath": "blue",
-  "python.formatting.blackArgs": [
-    "-l 120"
-  ],
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "python.linting.flake8Path": "flake8helled"
 }

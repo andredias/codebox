@@ -5,7 +5,7 @@ run: build
 
 dev:
 	docker run -it --rm --init --privileged -p 8000:8000 \
-		-v $(PWD)/app:/codebox/app --name codebox codebox
+		-v $(PWD)/app:/codebox/app --name codebox-dev codebox
 
 lint:
 	@echo
@@ -13,9 +13,9 @@ lint:
 	@echo
 	blue --check --diff --color .
 	@echo
-	mypy .
+	flakehell lint .
 	@echo
-	flake8 --config flake8.ini .
+	mypy .
 
 format_code:
 	isort .
@@ -24,7 +24,7 @@ format_code:
 build:
 	docker build -t codebox .
 
-test: lint test_container
+test: lint build test_only
 
-test_container: build
+test_only:
 	pytest -svx

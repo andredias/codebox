@@ -7,11 +7,11 @@ authors = ["André Felipe Dias <andre.dias@pronus.io>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 pydantic = "*"
-orjson = "^3.5.1"
-loguru = "^0.5.3"
-fastapi = "^0.63.0"
-Hypercorn = "^0.11.2"
-uvloop = "^0.15.2"
+orjson = "*"
+loguru = "*"
+fastapi = "*"
+Hypercorn = "*"
+uvloop = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -20,7 +20,12 @@ mypy = "*"
 isort = "*"
 blue = "*"
 alt-pytest-asyncio = "^0.5.4"
-httpx = "^0.18.1"
+httpx = "*"
+flakehell = "*"
+flake8-debugger = "^4.0.0"
+flake8-rst = "^0.8.0"
+pep8-naming = "^0.11.1"
+flake8-pytest-style = "^1.4.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -36,3 +41,15 @@ line_length = 100
 
 [tool.blue]
 line-length = 100
+
+[tool.flakehell]
+format = "grouped"
+max_line_length = 100
+show_source = true
+exclude = ['.venv', '.mypy_cache', '.pytest_cache']
+
+[tool.flakehell.plugins]
+flake8-pytest-style = ["+*", "-PT013"]
+"flake8-*" = ["+*"]
+mccabe = ["+*"]
+pep8-naming = ["+*"]
