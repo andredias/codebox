@@ -1,11 +1,11 @@
 PWD := $(shell pwd)
 
 run: build
-	docker run -it --rm --init --privileged -p 8000:8000 codebox
+	docker run -it --rm --init --privileged -p 8000:8000 --name codebox codebox
 
 dev:
 	docker run -it --rm --init --privileged -p 8000:8000 \
-		-v $(PWD)/app:/codebox/app codebox
+		-v $(PWD)/app:/codebox/app --name codebox codebox
 
 lint:
 	@echo
