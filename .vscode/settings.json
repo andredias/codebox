@@ -4,10 +4,7 @@
   "json.schemas": [],
   "emmet.triggerExpansionOnTab": true,
   "files.insertFinalNewline": true,
-  "python.linting.flake8Args": [
-    "count=1"
-  ],
   "python.formatting.blackPath": "blue",
   "python.formatting.provider": "black",
-  "python.linting.flake8Path": "flake8helled"
+  "python.linting.flake8Path": "${workspaceFolder}/.venv/bin/flake8helled"
 }
