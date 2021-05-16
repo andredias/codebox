@@ -24,7 +24,7 @@ Sourcefiles = dict[str, str]
 
 class Command(BaseModel):
     command: str
-    timeout: float = config.TIMEOUT
+    timeout: Optional[float] = config.TIMEOUT
     stdin: Optional[str] = None
 
 
