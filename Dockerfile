@@ -69,8 +69,10 @@ RUN apt update -y && \
     apt install -y --no-install-recommends \
     # rust needs build-essential
     build-essential \
+    # nsjail needs these
     libnl-route-3-200 \
     libprotobuf17 \
+    && apt autoclean -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /venv /venv
