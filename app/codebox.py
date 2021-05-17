@@ -11,6 +11,7 @@ import uuid
 from pathlib import Path
 from subprocess import TimeoutExpired, run
 from tempfile import NamedTemporaryFile
+from time import time
 from typing import Iterable, Optional
 
 from loguru import logger
@@ -143,7 +144,6 @@ class NSJail:
                     capture_output=True,
                     text=True,
                 )
-                logger.debug(process)
                 stdout = process.stdout
                 stderr = process.stderr
                 exit_code = process.returncode
@@ -176,7 +176,10 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
         with NSJail() as nsjail:
             for command in commands:
                 logger.info(command)
+                start = time()
                 resp = nsjail.execute(command)
+                interval = time() - start
+                logger.debug(f'Executed in {interval}s')
                 logger.info(resp)
                 responses.append(resp)
     return responses
