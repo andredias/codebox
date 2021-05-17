@@ -63,7 +63,7 @@ def _parse_log(log_lines: Iterable[str]) -> None:
 class NSJail:
     def __init__(self, cwd: Optional[Path] = None) -> None:
         self.cwd = cwd or Path.cwd()
-        self.cgroup_name = self.pid = self.mem = None
+        self.cgroup_name = self.pid = self.mem = ''
 
     def __enter__(self):
         """
@@ -117,17 +117,21 @@ class NSJail:
         """
         with NamedTemporaryFile() as nsj_log:
             # fmt: off
-            args = (
+            args = [
                 config.NSJAIL_PATH,
                 '--config', config.NSJAIL_CFG,
                 '--bindmount', f'{self.cwd}:/sandbox',
-                '--log', nsj_log.name,
+                '--log', nsj_log.name
+            ]
+            # Rust compiler doesn't work in a jail environment
+            if command.cgroups_enabled:
+                args.extend([
                 '--cgroup_mem_parent', self.cgroup_name,
                 '--cgroup_pids_parent', self.cgroup_name,
-                '--cgroup_mem_max', str(config.CGROUP_MEM_MAX),
-                '--cgroup_pids_max', str(config.CGROUP_PIDS_MAX),
-                '--', *shlex.split(command.command),
-            )
+                '--cgroup_mem_max', str(command.mem_max),
+                '--cgroup_pids_max', str(command.pids_max),
+                ])
+            args.extend(['--', *shlex.split(command.command)])
             # fmt: on
             exit_code = -1
             stdout = stderr = ''

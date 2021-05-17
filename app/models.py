@@ -24,8 +24,13 @@ Sourcefiles = dict[str, str]
 
 class Command(BaseModel):
     command: str
-    timeout: Optional[float] = config.TIMEOUT
     stdin: Optional[str] = None
+    timeout: Optional[float] = config.TIMEOUT
+    # new options below to accomodate Rust compiling restrictions
+    # they are not necessary for Python programs
+    mem_max: Optional[int] = config.CGROUP_MEM_MAX
+    pids_max: Optional[int] = config.CGROUP_PIDS_MAX
+    cgroups_enabled: Optional[bool] = True
 
 
 class ProjectCore(BaseModel):

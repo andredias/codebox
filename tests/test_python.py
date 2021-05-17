@@ -10,7 +10,7 @@ from app.models import Command, ProjectCore, Response
 def run_python(client: AsyncClient):
     async def _run_python(code: str) -> Response:
         sources = {'test.py': code}
-        command = Command(command='/usr/local/bin/python test.py')
+        command = Command(command='/venv/bin/python test.py')
         resp = await client.post(
             '/execute', json=ProjectCore(sources=sources, commands=[command]).dict()
         )
@@ -50,8 +50,8 @@ for line in sys.stdin.readlines():
         },
         [  # commands
             Command(command=f'/bin/sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
-            Command(command='/usr/local/bin/python main.py'),
-            Command(command='/usr/local/bin/python hello/hello.py', stdin='Olá\nAçúcar'),
+            Command(command='/venv/bin/python main.py'),
+            Command(command='/venv/bin/python hello/hello.py', stdin='Olá\nAçúcar'),
             Command(command='/bin/cat hello.py'),
             Command(command='/bin/cat main.py'),
         ],
@@ -96,7 +96,7 @@ async def test_max_mem_test(run_python):
 
 async def test_kill_process(run_python):
     code = '''import subprocess
-print(subprocess.check_output('kill -9 6', shell=True).decode())
+print(subprocess.check_output('kill -9 1', shell=True).decode())
 '''
     resp = await run_python(code)
     assert 'BlockingIOError: [Errno 11] Resource temporarily unavailable' in resp.stderr
@@ -147,5 +147,5 @@ except FileExistsError:
     pass
 '''
     resp = await run_python(code)
-    assert 'OSError: [Errno 38] Function not implemented' in resp.stderr
+    assert 'OSError: [Errno' in resp.stderr
     assert resp.exit_code != 0

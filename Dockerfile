@@ -29,7 +29,6 @@ RUN chmod +x nsjail
 
 # ---------------------------------------------------------
 
-
 FROM python:3.9-slim as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
@@ -53,18 +52,30 @@ WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
 RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-dev
 
+# Install languages
+
+# Install rust
+ENV CARGO_HOME=/venv/rust
+ENV RUSTUP_HOME=/venv/rust
+RUN curl https://sh.rustup.rs -sSf |  \
+    sh -s -- --profile minimal --default-host x86_64-unknown-linux-gnu \
+    --default-toolchain stable -y
+
 # ---------------------------------------------------------
 
 FROM python:3.9-slim as final
 
-RUN apt-get -y update && apt-get install -y \
+RUN apt update -y && \
+    apt install -y --no-install-recommends \
+    # rust needs build-essential
+    build-essential \
     libnl-route-3-200 \
     libprotobuf17 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /venv /venv
 COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
-ENV PATH=/venv/bin:${PATH}
+ENV PATH=/venv/bin:/venv/rust/bin:${PATH}
 
 WORKDIR /codebox
 COPY hypercorn.toml .
