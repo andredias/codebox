@@ -5,6 +5,5 @@
   "emmet.triggerExpansionOnTab": true,
   "files.insertFinalNewline": true,
   "python.formatting.blackPath": "blue",
-  "python.formatting.provider": "black",
-  "python.linting.flake8Path": "${workspaceFolder}/.venv/bin/flake8helled"
+  "python.formatting.provider": "black"
 }

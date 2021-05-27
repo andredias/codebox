@@ -127,10 +127,10 @@ class NSJail:
             # Rust compiler doesn't work in a jail environment
             if command.cgroups_enabled:
                 args.extend([
-                '--cgroup_mem_parent', self.cgroup_name,
-                '--cgroup_pids_parent', self.cgroup_name,
-                '--cgroup_mem_max', str(command.mem_max),
-                '--cgroup_pids_max', str(command.pids_max),
+                    '--cgroup_mem_parent', self.cgroup_name,
+                    '--cgroup_pids_parent', self.cgroup_name,
+                    '--cgroup_mem_max', str(command.mem_max),
+                    '--cgroup_pids_max', str(command.pids_max),
                 ])
             args.extend(['--', *shlex.split(command.command)])
             # fmt: on

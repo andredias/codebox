@@ -1,5 +1,4 @@
 from httpx import AsyncClient
-from pydantic import parse_obj_as
 from pytest import fixture
 
 from app.models import Command, ProjectCore, Response

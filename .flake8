@@ -1,0 +1,5 @@
+[flake8]
+exclude = .hg,.vscode,.venv,.mypy_cache,.pytest_cache,__pycache__,docs,old,build,dist
+max-line-length = 100
+count = true
+ignore = PT013,W503

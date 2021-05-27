@@ -14,7 +14,7 @@ lint:
 	@echo
 	blue --check --diff --color .
 	@echo
-	flakehell lint .
+	flake8 .
 	@echo
 	mypy .
 

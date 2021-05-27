@@ -21,7 +21,6 @@ isort = "*"
 blue = "*"
 alt-pytest-asyncio = "*"
 httpx = "*"
-flakehell = "*"
 flake8-debugger = "*"
 flake8-rst = "*"
 pep8-naming = "*"
@@ -41,15 +40,3 @@ line_length = 100
 
 [tool.blue]
 line-length = 100
-
-[tool.flakehell]
-format = "grouped"
-max_line_length = 100
-show_source = true
-exclude = ['.venv', '.mypy_cache', '.pytest_cache']
-
-[tool.flakehell.plugins]
-flake8-pytest-style = ["+*", "-PT013"]
-"flake8-*" = ["+*"]
-mccabe = ["+*"]
-pep8-naming = ["+*"]
