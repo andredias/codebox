@@ -25,6 +25,7 @@ flake8-debugger = "*"
 flake8-rst = "*"
 pep8-naming = "*"
 flake8-pytest-style = "*"
+types-orjson = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
