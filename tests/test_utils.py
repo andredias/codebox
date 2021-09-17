@@ -1,7 +1,8 @@
+import os
 from pathlib import Path
 from subprocess import check_call
 
-from pytest import raises
+from pytest import mark, raises
 
 from app.utils import SandboxDirectory, inside_container, save_source
 
@@ -28,10 +29,16 @@ def test_save_sources():
         save_source(sandbox, 'test/"blabla":*?\n/test.py', '')
 
 
+@mark.skipif(
+    os.environ.get('INSIDE_GITHUB_ACTIONS', False), reason="It doesn't work in GitHub Actions"
+)
 def test_not_inside_container():
     assert not inside_container()
 
 
+@mark.skipif(
+    os.environ.get('INSIDE_GITHUB_ACTIONS', False), reason="It doesn't work in GitHub Actions"
+)
 def test_inside_container(docker):
     check_call(
         'docker exec -it codebox-testing bash '
