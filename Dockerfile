@@ -1,4 +1,4 @@
-FROM python:3.9-slim as nsjail-builder
+FROM ubuntu:20.10 as nsjail-builder
 
 RUN apt-get -y update && apt-get install -y \
     autoconf \
@@ -71,7 +71,7 @@ RUN apt update -y && \
     build-essential \
     # nsjail needs these
     libnl-route-3-200 \
-    libprotobuf17 \
+    libprotobuf-dev \
     && apt autoclean -y \
     && rm -rf /var/lib/apt/lists/*
 
