@@ -41,16 +41,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-
-RUN python -m venv /venv
-ENV PATH=/venv/bin:/root/.poetry/bin:${PATH}
-RUN pip install --upgrade pip
-
-WORKDIR /codebox
-COPY pyproject.toml poetry.lock ./
-RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-dev
-
 # Install languages
 
 # Install rust
@@ -59,6 +49,22 @@ ENV RUSTUP_HOME=/venv/rust
 RUN curl https://sh.rustup.rs -sSf |  \
     sh -s -- --profile minimal --default-host x86_64-unknown-linux-gnu \
     --default-toolchain stable -y
+
+
+# Build Codebox
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+
+RUN python -m venv /venv
+ENV PATH=/venv/bin:/root/.local/bin:${PATH}
+RUN pip install --upgrade pip
+
+WORKDIR /codebox
+COPY pyproject.toml poetry.lock ./
+RUN . /venv/bin/activate; \
+    pip install --upgrade pip; \
+    poetry config virtualenvs.create false; \
+    poetry install --no-dev
+
 
 # ---------------------------------------------------------
 
