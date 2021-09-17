@@ -61,8 +61,6 @@ RUN pip install --upgrade pip
 WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
 RUN . /venv/bin/activate; \
-    pip install --upgrade pip; \
-    poetry config virtualenvs.create false; \
     poetry install --no-dev
 
 
