@@ -41,8 +41,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
 
 RUN python -m venv /venv
 ENV PATH=/venv/bin:/root/.poetry/bin:${PATH}

@@ -29,16 +29,15 @@ def test_save_sources():
         save_source(sandbox, 'test/"blabla":*?\n/test.py', '')
 
 
-@mark.skipif(
-    os.environ.get('INSIDE_GITHUB_ACTIONS', False), reason="It doesn't work in GitHub Actions"
-)
+INSIDE_GITHUB_ACTIONS = bool(os.environ.get('INSIDE_GITHUB_ACTIONS'))
+
+
+@mark.skipif(INSIDE_GITHUB_ACTIONS, reason="It doesn't work in GitHub Actions")
 def test_not_inside_container():
     assert not inside_container()
 
 
-@mark.skipif(
-    os.environ.get('INSIDE_GITHUB_ACTIONS', False), reason="It doesn't work in GitHub Actions"
-)
+@mark.skipif(INSIDE_GITHUB_ACTIONS, reason="It doesn't work in GitHub Actions")
 def test_inside_container(docker):
     check_call(
         'docker exec -it codebox-testing bash '
