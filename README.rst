@@ -2,6 +2,8 @@
 Codebox
 =======
 
+.. image:: https://github.com/andredias/codebox/actions/workflows/continuous-integration.yml/badge.svg
+
 Codebox is a container that runs arbitrary source code in a sandbox.
 
 
