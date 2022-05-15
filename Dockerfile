@@ -1,6 +1,6 @@
-FROM ubuntu:20.10 as nsjail-builder
+FROM python:3.10-slim as nsjail-builder
 
-RUN apt-get -y update && apt-get install -y \
+RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     autoconf \
     bison \
     flex \
@@ -29,14 +29,14 @@ RUN chmod +x nsjail
 
 # ---------------------------------------------------------
 
-FROM python:3.9-slim as builder
+FROM python:3.10-slim as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    apt-get -y upgrade && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && \
     apt-get install -y --no-install-recommends build-essential curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -66,7 +66,7 @@ RUN . /venv/bin/activate; \
 
 # ---------------------------------------------------------
 
-FROM python:3.9-slim as final
+FROM python:3.10-slim as final
 
 RUN apt update -y && \
     apt install -y --no-install-recommends \
