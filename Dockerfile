@@ -41,16 +41,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install languages
-
-# Install rust
-ENV CARGO_HOME=/venv/rust
-ENV RUSTUP_HOME=/venv/rust
-RUN curl https://sh.rustup.rs -sSf |  \
-    sh -s -- --profile minimal --default-host x86_64-unknown-linux-gnu \
-    --default-toolchain stable -y
-
-
 # Build Codebox
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
 
@@ -68,10 +58,7 @@ RUN . /venv/bin/activate; \
 
 FROM python:3.10-slim as final
 
-RUN apt update -y && \
-    apt install -y --no-install-recommends \
-    # rust needs build-essential
-    build-essential \
+RUN apt-get -y update && apt-get install -y --no-install-recommends \
     # nsjail needs these
     libnl-route-3-200 \
     libprotobuf-dev \
@@ -80,7 +67,7 @@ RUN apt update -y && \
 
 COPY --from=builder /venv /venv
 COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
-ENV PATH=/venv/bin:/venv/rust/bin:${PATH}
+ENV PATH=/venv/bin:${PATH}
 
 WORKDIR /codebox
 COPY hypercorn.toml .

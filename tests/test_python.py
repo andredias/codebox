@@ -42,11 +42,11 @@ projects = [
         # 'multiple source files and commands',
         {  # sources
             'main.py': 'print("Olá mundo!")\n',
-            'hello/hello.py': '''import sys
+            'hello/hello.py': """import sys
 
 for line in sys.stdin.readlines():
     sys.stdout.write(line)
-''',
+""",
         },
         [  # commands
             Command(command=f'/bin/sleep {TIMEOUT + 0.1}', timeout=TIMEOUT),
@@ -95,25 +95,25 @@ async def test_max_mem_test(run_python):
 
 
 async def test_kill_process(run_python):
-    code = '''import subprocess
+    code = """import subprocess
 print(subprocess.check_output('kill -9 1', shell=True).decode())
-'''
+"""
     resp = await run_python(code)
     assert 'BlockingIOError: [Errno 11] Resource temporarily unavailable' in resp.stderr
     assert resp.exit_code != 0
 
 
 async def test_write_file_to_sandbox_and_tmp(run_python):
-    code = '''from pathlib import Path
+    code = """from pathlib import Path
 
 Path('/sandbox/blabla.txt').write_text('bla bla bla')
 Path('/tmp/blabla.txt').write_text('bla bla bla')
-'''
+"""
     assert (await run_python(code)) == Response(stdout='', stderr='', exit_code=0)
 
 
 async def test_write_in_protected_dirs(run_python):
-    code = '''from pathlib import Path
+    code = """from pathlib import Path
 
 count = 0
 for path in ['/', '/bin', '/etc', '/lib', '/lib64', '/usr']:
@@ -123,29 +123,29 @@ for path in ['/', '/bin', '/etc', '/lib', '/lib64', '/usr']:
         count += 1
 
 print(count)
-'''
+"""
     assert (await run_python(code)).stdout == '6\n'
 
 
 async def test_forkbomb_recode_unavailable(run_python):
-    code = '''import os
+    code = """import os
 while 1:
     os.fork()
-    '''
+    """
     resp = await run_python(code)
     assert 'BlockingIOError: [Errno 11] Resource temporarily unavailable' in resp.stderr
     assert resp.exit_code != 0
 
 
 async def test_multiprocessing_shared_memory_disabled(run_python):
-    code = '''
+    code = """
 from multiprocessing.shared_memory import SharedMemory
 
 try:
     SharedMemory('test', create=True, size=16)
 except FileExistsError:
     pass
-'''
+"""
     resp = await run_python(code)
     assert 'OSError: [Errno' in resp.stderr
     assert resp.exit_code != 0
