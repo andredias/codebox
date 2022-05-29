@@ -26,9 +26,7 @@ async def test_hello_world(run_bash):
 
 
 async def test_isort(run_bash):
-    code = """python --version
-rustc --version
-"""
+    code = 'python --version'
     resp = await run_bash(code)
-    assert len(resp.stdout.splitlines()) == 2
+    assert len(resp.stdout.splitlines()) == 1
     assert resp.exit_code == 0

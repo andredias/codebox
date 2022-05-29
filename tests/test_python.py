@@ -84,14 +84,16 @@ async def test_run_project(client, sources, commands, responses):
 
 async def test_while_true(run_python):
     code = 'while True:\n    pass'
-    assert (await run_python(code)) == Response(
+    response = await run_python(code)
+    assert response == Response(
         stdout='', stderr=f'Timeout Error. Exceeded {TIMEOUT}s', exit_code=-1
     )
 
 
 async def test_max_mem_test(run_python):
     code = f"x = ' ' * {CGROUP_MEM_MAX + 1_000}"
-    assert (await run_python(code)) == Response(stdout='', stderr='', exit_code=137)
+    response = await run_python(code)
+    assert response == Response(stdout='', stderr='', exit_code=137)
 
 
 async def test_kill_process(run_python):
@@ -109,7 +111,8 @@ async def test_write_file_to_sandbox_and_tmp(run_python):
 Path('/sandbox/blabla.txt').write_text('bla bla bla')
 Path('/tmp/blabla.txt').write_text('bla bla bla')
 """
-    assert (await run_python(code)) == Response(stdout='', stderr='', exit_code=0)
+    response = await run_python(code)
+    assert response == Response(stdout='', stderr='', exit_code=0)
 
 
 async def test_write_in_protected_dirs(run_python):

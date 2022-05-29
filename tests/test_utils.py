@@ -40,8 +40,8 @@ def test_not_inside_container():
 @mark.skipif(INSIDE_GITHUB_ACTIONS, reason="It doesn't work in GitHub Actions")
 def test_inside_container(docker):
     check_call(
-        'docker exec -it codebox-testing bash '
-        '-c "python -c \'from app.utils import inside_container; '
-        'assert inside_container()\'"',
+        'docker exec -it codebox '
+        'python -c "from app.utils import inside_container; '
+        'assert inside_container()"',
         shell=True,
     )
