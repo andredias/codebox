@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
-from subprocess import DEVNULL, check_call
+from subprocess import DEVNULL, check_call, check_output
 from time import sleep
 from typing import AsyncIterable, Generator
 
-from httpx import AsyncClient, ConnectError, get
+from httpx import AsyncClient
 from pytest import fixture
 
 os.environ['ENV'] = 'testing'
@@ -13,12 +13,12 @@ os.environ['ENV'] = 'testing'
 @fixture(scope='session')
 def docker() -> Generator:
     # check if there is a running docker container
-    try:
-        get('http://localhost:8000/')
+    output = check_output('docker container ls -q -f name=^codebox$', shell=True)
+    if output:
+        # container is running
         yield
         return
-    except ConnectError:
-        pass
+
     app_dir = Path(__file__).parent.parent / 'app'
     check_call(
         'docker run -d -v /sys/fs/cgroup:/sys/fs/cgroup '

@@ -15,12 +15,8 @@ RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
-RUN latest_tag=$(git ls-remote --tags --exit-code --refs https://github.com/google/nsjail.git \
-    | sed -E 's/^[[:xdigit:]]+[[:space:]]+refs\/tags\/(.+)/\1/g' | tail -n1); \
-    git clone \
-    -b "$latest_tag" \
-    --single-branch \
-    --depth 1 \
+ARG NSJAIL_VERSION=3.1
+RUN git clone -b $NSJAIL_VERSION --single-branch --depth 1 \
     https://github.com/google/nsjail.git /nsjail
 WORKDIR /nsjail
 RUN make
