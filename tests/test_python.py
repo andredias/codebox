@@ -157,3 +157,49 @@ except FileExistsError:
     resp = await run_python(code)
     assert 'OSError: [Errno' in resp.stderr
     assert resp.exit_code != 0
+
+
+@pytest.mark.xfail(reason='Not working on NSJail 3.1')
+async def test_subprocess_resource_unavailable(run_python) -> None:
+    code = """\
+import subprocess
+
+# Max PIDs is 2.
+for _ in range(6):
+    print(subprocess.Popen(
+        [
+            '/usr/local/bin/python3',
+            '-c',
+            'import time; time.sleep(1)'
+        ],
+    ).pid)
+"""
+    resp = await run_python(code)
+    assert 'OSError: [Errno' in resp.stderr
+    assert resp.exit_code != 0
+
+
+@pytest.mark.xfail(reason='Not working on NSJail 3.1')
+async def test_multiprocess_resource_limits(run_python) -> None:
+    code = """\
+import time
+from multiprocessing import Process
+
+def f():
+    object = "A" * 40_000_000
+    time.sleep(0.5)
+
+proc_1 = Process(target=f)
+proc_2 = Process(target=f)
+
+proc_1.start()
+proc_2.start()
+
+proc_1.join()
+proc_2.join()
+
+print(proc_1.exitcode, proc_2.exitcode)
+"""
+    resp = await run_python(code)
+    assert 'OSError: [Errno' in resp.stderr
+    assert resp.exit_code != 0
