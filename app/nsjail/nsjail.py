@@ -2,16 +2,22 @@ import re
 import subprocess
 import sys
 import textwrap
+from functools import cache
 from subprocess import CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Iterable
 
 from loguru import logger
 
-from ..config import CGROUP_MEM_MAX, CGROUP_MEM_SWAP_MAX, CGROUP_PIDS_MAX, NSJAIL_CFG, NSJAIL_PATH
+from ..config import (
+    CGROUP_MEM_MAX,
+    CGROUP_MEM_SWAP_MAX,
+    CGROUP_PIDS_MAX,
+    DEBUG,
+    NSJAIL_CFG,
+    NSJAIL_PATH,
+)
 from . import cgroup, swap
-
-DEBUG = True
 
 # [level][timestamp][PID]? function_signature:line_no? message
 LOG_PATTERN = re.compile(
@@ -32,8 +38,10 @@ def init() -> tuple[int, bool]:
     return cgroup_version, ignore_swap_limits
 
 
-def _parse_log(log_lines: Iterable[str]) -> None:
-    """Parse and log NsJail's log messages."""
+def parse_log(log_lines: Iterable[str]) -> None:
+    """
+    Parse and log NsJail's log messages.
+    """
     for line in log_lines:
         match = LOG_PATTERN.fullmatch(line)
         if match is None:
@@ -95,6 +103,7 @@ def _consume_stdout(nsjail: subprocess.Popen) -> str:
     return ''.join(output)
 
 
+@cache
 def get_nsjail_args() -> list[str]:
     cgroup_version, ignore_swap_limits = init()
     # fmt: off
@@ -103,7 +112,7 @@ def get_nsjail_args() -> list[str]:
         '--cgroup_pids_max', str(CGROUP_PIDS_MAX),
     ]
     if cgroup_version == 2:
-        nsjail_args.extend(('--use_cgroupv2', *nsjail_args))
+        nsjail_args.append('--use_cgroupv2')
 
     if ignore_swap_limits:
         nsjail_args.extend((
@@ -173,7 +182,7 @@ def python3(code: str, *, py_args: Iterable[str] = ('-c',)) -> CompletedProcess:
             # NsJail probably failed to parse arguments so log output will still be in stdout
             log_lines = output.splitlines()
 
-        _parse_log(log_lines)
+        parse_log(log_lines)
 
     logger.info(f'nsjail return code: {returncode}')
 
