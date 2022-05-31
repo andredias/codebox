@@ -8,7 +8,7 @@ from typing import Iterable
 
 from loguru import logger
 
-from ..config import CGROUP_MEM_MAX, CGROUP_PIDS_MAX, NSJAIL_CFG, NSJAIL_PATH
+from ..config import CGROUP_MEM_MAX, CGROUP_MEM_SWAP_MAX, CGROUP_PIDS_MAX, NSJAIL_CFG, NSJAIL_PATH
 from . import cgroup, swap
 
 DEBUG = True
@@ -95,9 +95,28 @@ def _consume_stdout(nsjail: subprocess.Popen) -> str:
     return ''.join(output)
 
 
-def python3(
-    code: str, *, nsjail_args: Iterable[str] = (), py_args: Iterable[str] = ('-c',)
-) -> CompletedProcess:
+def get_nsjail_args() -> list[str]:
+    cgroup_version, ignore_swap_limits = init()
+    # fmt: off
+    nsjail_args = [
+        '--cgroup_mem_max', str(CGROUP_MEM_MAX),
+        '--cgroup_pids_max', str(CGROUP_PIDS_MAX),
+    ]
+    if cgroup_version == 2:
+        nsjail_args.extend(('--use_cgroupv2', *nsjail_args))
+
+    if ignore_swap_limits:
+        nsjail_args.extend((
+            '--cgroup_mem_memsw_max', '0',
+            '--cgroup_mem_swap_max', '-1',
+        ))
+    else:
+        nsjail_args.extend(('--cgroup_mem_swap_max', str(CGROUP_MEM_SWAP_MAX)))
+    # fmt: on
+    return nsjail_args
+
+
+def python3(code: str, *, py_args: Iterable[str] = ('-c',)) -> CompletedProcess:
     """
     Execute Python 3 code in an isolated environment and return the completed process.
 
@@ -107,23 +126,7 @@ def python3(
     `py_args` are arguments to pass to the Python subprocess before the code,
     which is the last argument. By default, it's "-c", which executes the code given.
     """
-    cgroup_version, ignore_swap_limits = init()
-    # fmt: off
-    nsjail_args = (
-        '--cgroup_mem_max', str(CGROUP_MEM_MAX),
-        '--cgroup_pids_max', str(CGROUP_PIDS_MAX),
-    )
-    if cgroup_version == 2:
-        nsjail_args = ('--use_cgroupv2', *nsjail_args)
-
-    if ignore_swap_limits:
-        nsjail_args = (
-            '--cgroup_mem_memsw_max', '0',
-            '--cgroup_mem_swap_max', '-1',
-            *nsjail_args,
-        )
-    # fmt: on
-
+    nsjail_args = get_nsjail_args()
     with NamedTemporaryFile() as nsj_log:
         args = (
             NSJAIL_PATH,
