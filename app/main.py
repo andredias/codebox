@@ -6,6 +6,7 @@ from loguru import logger
 from . import config
 from .codebox import run_project
 from .models import ProjectCore, Response
+from .nsjail.nsjail import python3
 
 app = FastAPI()
 
@@ -18,9 +19,7 @@ def execute(project: ProjectCore):
 
 @app.post('/python', response_model=Response)
 def run_python(code: str = Body()):
-    from .nsjail.nsjail import NsJail
-
-    resp = NsJail().python3(code)
+    resp = python3(code)
     logger.debug(resp)
     return Response(stdout=resp.stdout, stderr=resp.stderr, exit_code=resp.returncode)
 
