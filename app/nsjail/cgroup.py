@@ -2,10 +2,18 @@ from pathlib import Path
 
 from loguru import logger
 
-from .config_pb2 import NsJailConfig  # type: ignore
+from ..config import (
+    CGROUP_CPU_MOUNT,
+    CGROUP_MEM_MOUNT,
+    CGROUP_NET_CLS_MOUNT,
+    CGROUP_PARENT,
+    CGROUP_PIDS_MOUNT,
+    CGROUPV2_MOUNT,
+    USE_CGROUPV2,
+)
 
 
-def get_version(config: NsJailConfig) -> int:
+def get_version() -> int:
     """
     Examine the filesystem and return the guessed cgroup version.
 
@@ -13,17 +21,18 @@ def get_version(config: NsJailConfig) -> int:
     or neither seem to be enabled.
     """
     cgroup_mounts = (
-        config.cgroup_mem_mount,
-        config.cgroup_pids_mount,
-        config.cgroup_net_cls_mount,
-        config.cgroup_cpu_mount,
+        CGROUP_MEM_MOUNT,
+        CGROUP_PIDS_MOUNT,
+        CGROUP_NET_CLS_MOUNT,
+        CGROUP_CPU_MOUNT,
+        CGROUP_PIDS_MOUNT,
     )
     v1_exists = any(Path(mount).exists() for mount in cgroup_mounts)
 
-    controllers_path = Path(config.cgroupv2_mount, 'cgroup.controllers')
+    controllers_path = Path(CGROUPV2_MOUNT, 'cgroup.controllers')
     v2_exists = controllers_path.exists()
 
-    config_version = 2 if config.use_cgroupv2 else 1
+    config_version = 2 if USE_CGROUPV2 else 1
 
     if v1_exists and v2_exists:
         # Probably hybrid mode. Use whatever is set in the config.
@@ -49,34 +58,34 @@ def get_version(config: NsJailConfig) -> int:
         return config_version
 
 
-def init(config: NsJailConfig) -> int:
+def init() -> int:
     """Determine the cgroup version, initialise the cgroups for NsJail, and return the version."""
-    version = get_version(config)
+    version = get_version()
     if version == 1:
-        init_v1(config)
+        init_v1()
     else:
-        init_v2(config)
+        init_v2()
 
     return version
 
 
-def init_v1(config: NsJailConfig) -> None:
+def init_v1() -> None:
     """
     Create a PID and memory cgroup for NsJail to use as the parent cgroup for each controller.
 
     NsJail doesn't do this automatically because it requires privileges NsJail usually doesn't
     have.
     """
-    pids = Path(config.cgroup_pids_mount, config.cgroup_pids_parent)
-    mem = Path(config.cgroup_mem_mount, config.cgroup_mem_parent)
+    pids = Path(CGROUP_PIDS_MOUNT, CGROUP_PARENT)
+    mem = Path(CGROUP_MEM_MOUNT, CGROUP_PARENT)
 
     pids.mkdir(parents=True, exist_ok=True)
     mem.mkdir(parents=True, exist_ok=True)
 
 
-def init_v2(config: NsJailConfig) -> None:
+def init_v2() -> None:
     """Ensure cgroupv2 children have controllers enabled."""
-    cgroup_mount = Path(config.cgroupv2_mount)
+    cgroup_mount = Path(CGROUPV2_MOUNT)
 
     # If the root's subtree_control already has some controllers enabled,
     # no further action is necessary.

@@ -3,16 +3,22 @@ from pathlib import Path
 
 from loguru import logger
 
-from .config_pb2 import NsJailConfig  # type: ignore
+from ..config import (
+    CGROUP_MEM_MAX,
+    CGROUP_MEM_MEMSW_MAX,
+    CGROUP_MEM_MOUNT,
+    CGROUP_MEM_SWAP_MAX,
+    CGROUPV2_MOUNT,
+)
 
 
-def controller_exists(config: NsJailConfig, cgroup_version: int) -> bool:
+def controller_exists(cgroup_version: int) -> bool:
     """Return True if the swap memory cgroup controller is enabled."""
     if cgroup_version == 1:
-        return Path(config.cgroup_mem_mount, 'memory.memsw.max_usage_in_bytes').exists()
+        return Path(CGROUP_MEM_MOUNT, 'memory.memsw.max_usage_in_bytes').exists()
     else:
         # Create a child cgroup because memory.swap isn't available in the root cgroup.
-        child = Path(config.cgroupv2_mount, f'snekbox-temp-{uuid.uuid4()}')
+        child = Path(CGROUPV2_MOUNT, f'codebox-temp-{uuid.uuid4()}')
         child.mkdir()
         swap_controller_exists = (child / 'memory.swap.max').exists()
         child.rmdir()
@@ -32,7 +38,7 @@ def is_enabled() -> bool:
     return False
 
 
-def should_ignore_limit(config: NsJailConfig, cgroup_version: int) -> bool:
+def should_ignore_limit(cgroup_version: int) -> bool:
     """
     Return True if a swap limit should not be configured for NsJail.
 
@@ -42,14 +48,14 @@ def should_ignore_limit(config: NsJailConfig, cgroup_version: int) -> bool:
 
     Log a warning if swap is enabled but the swap controller isn't enabled.
     """
-    if config.cgroup_mem_max <= 0:
+    if CGROUP_MEM_MAX <= 0:
         return False
 
-    if config.cgroup_mem_memsw_max <= 0 and config.cgroup_mem_swap_max < 0:
+    if CGROUP_MEM_MEMSW_MAX <= 0 and CGROUP_MEM_SWAP_MAX < 0:
         logger.warning('Memory is being limited, but swap memory is unlimited.')
         return False
 
-    controller_missing = not controller_exists(config, cgroup_version)
+    controller_missing = not controller_exists(cgroup_version)
     if is_enabled() and controller_missing:
         logger.warning(
             'Swap memory is available, but the swap memory controller is not enabled. This is '

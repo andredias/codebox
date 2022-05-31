@@ -12,7 +12,6 @@ loguru = "*"
 fastapi = "*"
 Hypercorn = "*"
 uvloop = "*"
-protobuf = "*"
 types-protobuf = "*"
 
 [tool.poetry.dev-dependencies]

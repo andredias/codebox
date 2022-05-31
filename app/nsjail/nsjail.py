@@ -1,18 +1,15 @@
-import os
 import re
 import subprocess
 import sys
 import textwrap
-from pathlib import Path
 from subprocess import CompletedProcess
 from tempfile import NamedTemporaryFile
 from typing import Iterable
 
-from google.protobuf import text_format
 from loguru import logger
 
+from ..config import CGROUP_MEM_MAX, CGROUP_PIDS_MAX, NSJAIL_CFG, NSJAIL_PATH
 from . import cgroup, swap
-from .config_pb2 import NsJailConfig  # type: ignore
 
 DEBUG = True
 
@@ -21,9 +18,6 @@ LOG_PATTERN = re.compile(
     r'\[(?P<level>(I)|[DWEF])\]\[.+?\](?(2)|(?P<func>\[\d+\] .+?:\d+ )) ?(?P<msg>.+)'
 )
 LOG_BLACKLIST = ('Process will be ',)
-
-NSJAIL_PATH = os.getenv('NSJAIL_PATH', '/usr/sbin/nsjail')
-NSJAIL_CFG = os.getenv('NSJAIL_CFG', '/codebox/app/nsjail/nsjail.cfg')
 
 # Limit of stdout bytes we consume before terminating nsjail
 OUTPUT_MAX = 1_000_000  # 1 MB
@@ -39,33 +33,10 @@ class NsJail:
 
     def __init__(self, nsjail_binary: str = NSJAIL_PATH):
         self.nsjail_binary = nsjail_binary
-        self.config = self._read_config()
-        self.cgroup_version = cgroup.init(self.config)
-        self.ignore_swap_limits = swap.should_ignore_limit(self.config, self.cgroup_version)
+        self.cgroup_version = cgroup.init()
+        self.ignore_swap_limits = swap.should_ignore_limit(self.cgroup_version)
 
         logger.info(f'Assuming cgroup version {self.cgroup_version}.')
-
-    @staticmethod
-    def _read_config() -> NsJailConfig:
-        """Read the NsJail config at `NSJAIL_CFG` and return a protobuf Message object."""
-        config = NsJailConfig()
-
-        try:
-            config_text = Path(NSJAIL_CFG).read_text()
-        except FileNotFoundError:
-            logger.critical(f'The NsJail config at {NSJAIL_CFG!r} could not be found.')
-            sys.exit(1)
-        except OSError as e:
-            logger.critical(f'The NsJail config at {NSJAIL_CFG!r} could not be read.', exc_info=e)
-            sys.exit(1)
-
-        try:
-            text_format.Parse(config_text, config)
-        except text_format.ParseError as e:
-            logger.critical(f'The NsJail config at {NSJAIL_CFG!r} could not be parsed.', exc_info=e)
-            sys.exit(1)
-
-        return config
 
     @staticmethod
     def _parse_log(log_lines: Iterable[str]) -> None:
@@ -142,17 +113,21 @@ class NsJail:
         `py_args` are arguments to pass to the Python subprocess before the code,
         which is the last argument. By default, it's "-c", which executes the code given.
         """
+        # fmt: off
+        nsjail_args = (
+            '--cgroup_mem_max', str(CGROUP_MEM_MAX),
+            '--cgroup_pids_max', str(CGROUP_PIDS_MAX),
+        )
         if self.cgroup_version == 2:
             nsjail_args = ('--use_cgroupv2', *nsjail_args)
 
         if self.ignore_swap_limits:
             nsjail_args = (
-                '--cgroup_mem_memsw_max',
-                '0',
-                '--cgroup_mem_swap_max',
-                '-1',
+                '--cgroup_mem_memsw_max', '0',
+                '--cgroup_mem_swap_max', '-1',
                 *nsjail_args,
             )
+        # fmt: on
 
         with NamedTemporaryFile() as nsj_log:
             args = (
