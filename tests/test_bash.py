@@ -9,7 +9,7 @@ def run_bash(client: AsyncClient):
     async def _run_bash(code: str) -> Response:
         sources = {'test.sh': code}
         commands = [
-            Command(command='/bin/bash test.sh', timeout=1, pids_max=2),
+            Command(command='/bin/bash test.sh', timeout=0.1),
         ]
         resp = await client.post(
             '/execute', json=ProjectCore(sources=sources, commands=commands).dict()
