@@ -1,12 +1,11 @@
 import sys
 
-from fastapi import Body, FastAPI
+from fastapi import FastAPI
 from loguru import logger
 
 from . import config
 from .codebox import run_project
 from .models import ProjectCore, Response
-from .nsjail.nsjail import python3
 
 app = FastAPI()
 
@@ -15,13 +14,6 @@ app = FastAPI()
 def execute(project: ProjectCore):
     responses = run_project(project.sources, project.commands)
     return responses
-
-
-@app.post('/python', response_model=Response)
-def run_python(code: str = Body()):
-    resp = python3(code)
-    logger.debug(resp)
-    return Response(stdout=resp.stdout, stderr=resp.stderr, exit_code=resp.returncode)
 
 
 @app.on_event('startup')
