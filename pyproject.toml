@@ -5,13 +5,15 @@ description = ""
 authors = ["André Felipe Dias <andre.dias@pronus.io>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 pydantic = "*"
 orjson = "*"
 loguru = "*"
 fastapi = "*"
 Hypercorn = "*"
 uvloop = "*"
+protobuf = "*"
+types-protobuf = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

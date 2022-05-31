@@ -34,6 +34,6 @@ class ProjectCore(BaseModel):
 
 
 class Response(BaseModel):
-    stdout: str = ''
-    stderr: str = ''
+    stdout: str | None = ''
+    stderr: str | None = ''
     exit_code: int = 0

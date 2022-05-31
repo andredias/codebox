@@ -101,6 +101,7 @@ def execute(command: Command) -> Response:
 
 
 def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]:
+    init_v2()
     responses = []
     with SandboxDirectory() as sandbox:
         os.chmod(sandbox, 0o0777)  # to be used in nsjail later
@@ -122,3 +123,32 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
             logger.info(resp)
             responses.append(resp)
     return responses
+
+
+def init_v2() -> None:
+    """Ensure cgroupv2 children have controllers enabled."""
+    from pathlib import Path
+
+    cgroup_mount = Path('/sys/fs/cgroup')
+
+    # If the root's subtree_control already has some controllers enabled,
+    # no further action is necessary.
+    if (cgroup_mount / 'cgroup.subtree_control').read_text().strip():
+        return
+
+    # Move all processes from the cgroupv2 mount to a child cgroup.
+    # This is necessary to be able to write to subtree_control in the parent later.
+    # Otherwise, a write operation would yield a "device or resource busy" error.
+    init_cgroup = cgroup_mount / 'init'
+    init_cgroup.mkdir(parents=True, exist_ok=True)
+
+    procs = (cgroup_mount / 'cgroup.procs').read_text().split()
+    for proc in procs:
+        (init_cgroup / 'cgroup.procs').write_text(proc)
+
+    # Enable all available controllers for child cgroups.
+    # This also retroactively enables controllers for children that already exist,
+    # including the "init" child created just before.
+    controllers = (cgroup_mount / 'cgroup.controllers').read_text().split()
+    for controller in controllers:
+        (cgroup_mount / 'cgroup.subtree_control').write_text(f'+{controller}')

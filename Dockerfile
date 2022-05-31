@@ -1,26 +1,24 @@
-FROM python:3.10-slim as nsjail-builder
+FROM python:3.10-slim-buster as nsjail-builder
 
-RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    autoconf \
-    bison \
-    flex \
-    gcc \
-    g++ \
-    git \
-    libprotobuf-dev \
-    libnl-route-3-dev \
-    libtool \
-    make \
-    pkg-config \
-    protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y update \
+    && apt-get install -y \
+    bison=2:3.3.* \
+    flex=2.6.* \
+    g++=4:8.3.* \
+    gcc=4:8.3.* \
+    git=1:2.20.* \
+    libprotobuf-dev=3.6.* \
+    libnl-route-3-dev=3.4.* \
+    make=4.2.* \
+    pkg-config=0.29-6 \
+    protobuf-compiler=3.6.*
 
-ARG NSJAIL_VERSION=3.1
-RUN git clone -b $NSJAIL_VERSION --single-branch --depth 1 \
-    https://github.com/google/nsjail.git /nsjail
 WORKDIR /nsjail
+RUN git clone -b master --single-branch https://github.com/google/nsjail.git . \
+    && git checkout dccf911fd2659e7b08ce9507c25b2b38ec2c5800
 RUN make
 RUN chmod +x nsjail
+
 
 
 # ---------------------------------------------------------
@@ -52,12 +50,12 @@ RUN . /venv/bin/activate; \
 
 # ---------------------------------------------------------
 
-FROM python:3.10-slim as final
+FROM python:3.10-slim-buster as final
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     # nsjail needs these
-    libnl-route-3-200 \
-    libprotobuf-dev \
+    libnl-route-3-200=3.4.* \
+    libprotobuf17=3.6.* \
     && apt autoclean -y \
     && rm -rf /var/lib/apt/lists/*
 

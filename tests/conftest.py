@@ -23,7 +23,7 @@ def docker() -> Generator:
     check_call(
         'docker run -d -v /sys/fs/cgroup:/sys/fs/cgroup '
         f'--privileged --rm -p 8000:8000 -v {app_dir}:/codebox/app '
-        '-e ENV=development --name codebox codebox',
+        '--ipc=none -e ENV=development --name codebox codebox',
         stdout=DEVNULL,
         shell=True,
     )
