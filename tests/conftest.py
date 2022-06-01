@@ -19,11 +19,9 @@ def docker() -> Generator:
         yield
         return
 
-    app_dir = Path(__file__).parent.parent / 'app'
+    makefile_path = Path(__file__).parent.parent
     check_call(
-        'docker run -d -v /sys/fs/cgroup:/sys/fs/cgroup '
-        f'--privileged --rm -p 8000:8000 -v {app_dir}:/codebox/app '
-        '--ipc=none -e ENV=development --name codebox codebox',
+        f'make -C {makefile_path} run',
         stdout=DEVNULL,
         shell=True,
     )

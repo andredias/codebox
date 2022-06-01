@@ -1,9 +1,8 @@
 PWD := $(shell pwd)
 
 run: build
-	docker run -it --rm --init  -p 8000:8000 \
-	--ipc=none  \
-	--privileged -v /sys/fs/cgroup:/sys/fs/cgroup \
+	docker run -d --rm --init -p 8000:8000 \
+	--ipc=none --privileged \
 	--name codebox codebox
 
 dev:
