@@ -46,7 +46,7 @@ def parse_log(log_lines: Iterable[str]) -> None:
         elif match['level'] == 'I':
             if DEBUG or msg.startswith('pid='):
                 # Skip messages unrelated to process exit if not debugging.
-                logger.debug(msg)
+                logger.info(msg)
         elif match['level'] == 'W':
             logger.warning(msg)
         else:
