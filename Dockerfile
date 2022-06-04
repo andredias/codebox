@@ -14,8 +14,9 @@ RUN apt-get -y update \
     protobuf-compiler=3.6.*
 
 WORKDIR /nsjail
-RUN git clone -b master --single-branch https://github.com/google/nsjail.git . \
-    && git checkout dccf911fd2659e7b08ce9507c25b2b38ec2c5800
+ARG NSJAIL_VERSION=3.1
+RUN git clone -b $NSJAIL_VERSION --single-branch --depth 1 \
+    https://github.com/google/nsjail.git .
 RUN make
 RUN chmod +x nsjail
 
