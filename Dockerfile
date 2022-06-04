@@ -57,6 +57,9 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     # nsjail needs these
     libnl-route-3-200=3.4.* \
     libprotobuf17=3.6.* \
+    # sqlite3
+    sqlite3 \
+    # clean up
     && apt autoclean -y \
     && rm -rf /var/lib/apt/lists/*
 
@@ -64,6 +67,7 @@ COPY --from=builder /venv /venv
 COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
 ENV PATH=/venv/bin:${PATH}
 
+# Install Codebox
 WORKDIR /codebox
 COPY hypercorn.toml .
 COPY app/ ./app
