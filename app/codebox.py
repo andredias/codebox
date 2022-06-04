@@ -31,6 +31,7 @@ def execute(command: Command) -> Response:
         arguments = (
             config.NSJAIL_PATH,
             '--config', config.NSJAIL_CFG,
+            '--env', 'HOME=/sandbox',
             '--cwd', '/sandbox',
             '--bindmount', f'{Path.cwd()}:/sandbox',
             '--log', nsj_log.name,
