@@ -39,6 +39,7 @@ def execute(command: Command) -> Response:
             '--', *shlex.split(command.command)
         )
         # fmt: on
+        logger.debug(' '.join(arguments))
         exit_code = -1
         stdout = stderr = ''
         try:
@@ -79,7 +80,6 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
         if responses:
             return responses
         for command in commands:
-            logger.info(command)
             start_time = perf_counter()
             resp = execute(command)
             time = perf_counter() - start_time
