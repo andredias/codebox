@@ -2,15 +2,15 @@ from httpx import AsyncClient
 from pydantic import parse_obj_as
 from pytest import fixture, mark
 
-from app.config import CGROUP_MEM_MAX, TIMEOUT
+from app.config import CGROUP_MEM_MAX, CGROUP_PIDS_MAX, TIMEOUT
 from app.models import Command, ProjectCore, Response
 
 
 @fixture
 def run_python(client: AsyncClient):
-    async def _run_python(code: str) -> Response:
+    async def _run_python(code: str, timeout: float = 0.1) -> Response:
         sources = {'test.py': code}
-        command = Command(command='/venv/bin/python test.py')
+        command = Command(command='/venv/bin/python test.py', timeout=timeout)
         resp = await client.post(
             '/execute', json=ProjectCore(sources=sources, commands=[command]).dict()
         )
@@ -146,11 +146,11 @@ except FileExistsError:
 
 
 async def test_subprocess_resource_unavailable(run_python) -> None:
-    code = """\
+    code = f"""\
 import subprocess
 
 # Max PIDs is 2.
-for _ in range(6):
+for _ in range({CGROUP_PIDS_MAX + 1}):
     print(subprocess.Popen(
         [
             '/usr/local/bin/python3',
@@ -165,25 +165,27 @@ for _ in range(6):
 
 
 async def test_multiprocess_resource_limits(run_python) -> None:
-    code = """\
+    code = f"""\
 import time
 from multiprocessing import Process
 
 def f():
-    object = "A" * 40_000_000
+    object = "A" * {CGROUP_MEM_MAX + 1_000}
     time.sleep(0.5)
 
-proc_1 = Process(target=f)
-proc_2 = Process(target=f)
+procs = []
+for _ in range({CGROUP_PIDS_MAX + 1}):
+    procs.append(Process(target=f))
 
-proc_1.start()
-proc_2.start()
+for i in range({CGROUP_PIDS_MAX + 1}):
+    procs[i].start()
 
-proc_1.join()
-proc_2.join()
+for i in range({CGROUP_PIDS_MAX + 1}):
+    procs[i].join()
 
-print(proc_1.exitcode, proc_2.exitcode)
+for i in range({CGROUP_PIDS_MAX + 1}):
+    print(procs[i].exitcode)
 """
-    resp = await run_python(code)
+    resp = await run_python(code, timeout=1.0)
     assert 'BlockingIOError: [Errno 11] Resource temporarily unavailable' in resp.stderr
     assert resp.exit_code != 0

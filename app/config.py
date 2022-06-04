@@ -11,10 +11,10 @@ TIMEOUT: float = 0.1
 NSJAIL_PATH: str = os.getenv('NSJAIL_PATH', '/usr/sbin/nsjail')
 NSJAIL_CFG: str = os.getenv('NSJAIL_CFG', str(Path(__file__).parent / 'nsjail/nsjail.cfg'))
 
-CGROUP_MEM_MAX: int = 32_000_000  # 32 MB
+CGROUP_MEM_MAX: int = 64_000_000  # 64 MB
 CGROUP_MEM_MEMSW_MAX: int = 0  # disabled
 CGROUP_MEM_SWAP_MAX: int = 0  # swap is not allowed
-CGROUP_PIDS_MAX: int = 2
+CGROUP_PIDS_MAX: int = 12  # rustc needs that
 
 CGROUP_MEM_MOUNT: str = '/sys/fs/cgroup/memory'
 CGROUP_PIDS_MOUNT: str = '/sys/fs/cgroup/pids'

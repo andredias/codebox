@@ -63,6 +63,35 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     && apt autoclean -y \
     && rm -rf /var/lib/apt/lists/*
 
+# Rust installation
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+RUN set -eux; \
+    apt-get -y update; \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    gcc \
+    libc6-dev \
+    curl \
+    ; \
+    curl https://sh.rustup.rs -sSf |  \
+    sh -s -- --no-modify-path --profile minimal --default-host  \
+    x86_64-unknown-linux-gnu  \
+    --default-toolchain stable -y; \
+    chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
+    rustup --version; \
+    cargo --version; \
+    rustc --version; \
+    apt-get remove -y --auto-remove; \
+    rm -rf /var/lib/apt/lists/*;
+
+# help debugging
+RUN echo 'alias ll="ls -lahF --color"' >> $HOME/.bashrc
+
+# Codebox configuration
+
 COPY --from=builder /venv /venv
 COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
 ENV PATH=/venv/bin:${PATH}

@@ -25,8 +25,15 @@ async def test_hello_world(run_bash):
     assert resp == Response(stdout='Ola mundo!', stderr='', exit_code=0)
 
 
-async def test_isort(run_bash):
-    code = 'python --version'
+async def test_get_version(run_bash):
+    code = 'bash --version'
     resp = await run_bash(code)
-    assert len(resp.stdout.splitlines()) == 1
+    assert resp.exit_code == 0
+    assert 'version' in resp.stdout.lower()
+
+
+async def test_printenv(run_bash):
+    code = '/usr/bin/printenv'
+    resp = await run_bash(code)
+    print(resp.stdout)
     assert resp.exit_code == 0
