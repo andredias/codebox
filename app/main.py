@@ -6,6 +6,7 @@ from loguru import logger
 from . import config
 from .codebox import run_project
 from .models import ProjectCore, Response
+from .utils import available_languages
 
 app = FastAPI()
 
@@ -14,6 +15,11 @@ app = FastAPI()
 def execute(project: ProjectCore):
     responses = run_project(project.sources, project.commands)
     return responses
+
+
+@app.get('/languages')
+def languages():
+    return available_languages()
 
 
 @app.on_event('startup')

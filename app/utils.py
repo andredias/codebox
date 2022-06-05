@@ -1,6 +1,7 @@
 import os
+from functools import cache
 from pathlib import Path
-from subprocess import run
+from subprocess import check_output, run
 from tempfile import TemporaryDirectory, gettempdir
 from unittest.mock import patch
 
@@ -62,3 +63,18 @@ def inside_container() -> bool:
         or Path('/run/.containerenv').exists()
         or bool(run(['grep', ':/docker', '/proc/1/cgroup'], capture_output=True, text=True).stdout)
     )
+
+
+@cache
+def available_languages() -> dict[str, str]:
+    def get_version(lang_name: str) -> list[str]:
+        resp = check_output((lang_name, '--version'), text=True)
+        return resp.split()
+
+    languages = {}
+    languages['python'] = get_version('python')[1]
+    languages['rust'] = get_version('rustc')[1]
+    languages['sqlite3'] = get_version('sqlite3')[0]
+    languages['bash'] = get_version('bash')[3]
+
+    return languages
