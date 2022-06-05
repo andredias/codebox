@@ -83,7 +83,7 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
             start_time = perf_counter()
             resp = execute(command)
             time = perf_counter() - start_time
-            logger.info(f'Executed in {time * 1000:.2f}ms')
+            logger.info(f'Executed in {time * 1000:.0f}ms')
             logger.info(resp)
             responses.append(resp)
     return responses
