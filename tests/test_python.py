@@ -149,11 +149,10 @@ async def test_subprocess_resource_unavailable(run_python) -> None:
     code = f"""\
 import subprocess
 
-# Max PIDs is 2.
-for _ in range({CGROUP_PIDS_MAX + 1}):
+for _ in range({CGROUP_PIDS_MAX * 2}):
     print(subprocess.Popen(
         [
-            '/usr/local/bin/python3',
+            '/venv/bin/python',
             '-c',
             'import time; time.sleep(1)'
         ],

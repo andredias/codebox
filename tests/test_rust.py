@@ -24,7 +24,7 @@ def run_rust(client: AsyncClient):
 
 
 async def test_hello_world(run_rust):
-    code = """
+    code = """\
 fn main() {
     println!("Hello World!");
 }

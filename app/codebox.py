@@ -26,6 +26,7 @@ def execute(command: Command) -> Response:
     Execute a command in an isolated environment and return its response.
     """
     nsjail_args = get_nsjail_args()
+    start_time = perf_counter()
     with NamedTemporaryFile() as nsj_log:
         # fmt: off
         arguments = (
@@ -63,7 +64,8 @@ def execute(command: Command) -> Response:
             log_lines = nsj_log.read().decode('utf-8').splitlines()
             parse_log(log_lines)
 
-    return Response(stdout=stdout, stderr=stderr, exit_code=exit_code)
+    elapsed_time = perf_counter() - start_time
+    return Response(stdout=stdout, stderr=stderr, exit_code=exit_code, elapsed_time=elapsed_time)
 
 
 def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]:
@@ -80,10 +82,7 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
         if responses:
             return responses
         for command in commands:
-            start_time = perf_counter()
             resp = execute(command)
-            time = perf_counter() - start_time
-            logger.info(f'Executed in {time * 1000:.0f}ms')
             logger.info(resp)
             responses.append(resp)
     return responses
