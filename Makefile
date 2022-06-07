@@ -30,7 +30,5 @@ format_code:
 build:
 	docker build -t codebox .
 
-test: lint build test_only
-
-test_only:
+test:
 	pytest -svx

@@ -25,6 +25,8 @@ jobs:
         run: poetry install --no-interaction
       - name: Run tests
         run: |
+          poetry run make lint
+          poetry run make build
           poetry run make test
         env:
           INSIDE_GITHUB_ACTIONS: "true"
