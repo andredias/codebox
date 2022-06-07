@@ -1,3 +1,4 @@
+import pytest
 from httpx import AsyncClient
 from pydantic import parse_obj_as
 from pytest import fixture, mark
@@ -145,6 +146,7 @@ except FileExistsError:
     assert resp.exit_code != 0
 
 
+@pytest.mark.xfail(reason='non-deterministic test')
 async def test_subprocess_resource_unavailable(run_python) -> None:
     code = f"""\
 import subprocess
