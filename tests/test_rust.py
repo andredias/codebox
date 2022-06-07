@@ -30,5 +30,6 @@ fn main() {
 }
 """
     resp = await run_rust(code)
-    assert sum(r.exit_code for r in resp) == 0
+    assert resp[0].stderr == resp[1].stderr == ''
     assert resp[1].stdout == 'Hello World!\n'
+    assert sum(r.exit_code for r in resp) == 0
