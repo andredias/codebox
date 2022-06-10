@@ -29,11 +29,11 @@ Example 1
 
    {
       "sources": {
-         "hello/hello.py": "print(\"Hello World!\")"
+         "hello.py": "print('Hello World!')"
       },
       "commands": [
          {
-            "command":"/usr/local/bin/python hello/hello.py"
+            "command": "/usr/local/bin/python hello.py"
          }
       ]
    }
@@ -46,11 +46,12 @@ Example 2
 
    {
       "sources": {
-         "main.py": "import sys\n\nfor line in sys.stdin.readlines():\n    sys.stdout.write(line)\n"
+         "app/__init__.py": "",
+         "app/main.py": "import sys\n\nfor line in sys.stdin.readlines():\n    sys.stdout.write(line)\n"
       },
       "commands": [
          {
-            "command":"/usr/local/bin/python main.py", "timeout":0.1, "stdin":"1\n2\n3"
+            "command": "/usr/local/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
          }
       ]
    }
@@ -65,7 +66,27 @@ Example 3
       "sources": {},
       "commands": [
          {
-            "command":"/bin/sleep 1", "timeout":0.1
+            "command": "/bin/sleep 1", "timeout": 0.1
+         }
+      ]
+   }
+
+
+Example 4
+---------
+
+.. code:: json
+
+   {
+      "sources": {
+         "code.rs": "fn main() {\n    println!(\"Hello World!\");\n}"
+      },
+      "commands": [
+         {
+            "command": "/usr/local/cargo/bin/rustc code.rs", "timeout": 0.5
+         },
+         {
+            "command":"./code", "timeout": 0.1
          }
       ]
    }
