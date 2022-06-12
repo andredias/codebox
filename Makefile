@@ -15,20 +15,29 @@ dev:
 
 lint:
 	@echo
-	isort --diff -c --skip-glob '*.venv' .
+	isort --diff -c .
 	@echo
 	blue --check --diff --color .
 	@echo
 	flake8 .
 	@echo
 	mypy .
+	@echo
+	bandit -qr codebox/
+	@echo
+	pip-audit
 
-format_code:
+format:
 	isort .
 	blue .
+	pyupgrade --py310-plus **/*.py
 
 build:
 	docker build -t codebox .
 
 test:
-	pytest -svx
+	pytest -sv --cov-report term-missing --cov-report html --cov-branch \
+	       --cov app/
+
+install_hooks:
+	@ scripts/install_hooks.sh

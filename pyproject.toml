@@ -1,8 +1,12 @@
 [tool.poetry]
-name = "codebox"
+name = "Codebox"
 version = "0.1.0"
 description = ""
-authors = ["André Felipe Dias <andre.dias@pronus.io>"]
+authors = ["André Felipe Dias <andref.dias@gmail.com>"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -14,30 +18,32 @@ Hypercorn = "*"
 uvloop = "*"
 
 [tool.poetry.dev-dependencies]
-pytest = "*"
-flake8 = "*"
-mypy = "*"
-isort = "*"
-blue = "*"
 alt-pytest-asyncio = "*"
-httpx = "*"
+bandit = "*"
+blue = "*"
+flake8 = "*"
 flake8-debugger = "*"
-flake8-rst = "*"
-pep8-naming = "*"
 flake8-pytest-style = "*"
+httpx = "*"
+isort = "*"
+mypy = "*"
+pep8-naming = "*"
+pip-audit = "*"
+pyupgrade = "*"
+pytest = "*"
+pytest-cov = "*"
 types-orjson = "*"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
+profile = "black"
 line_length = 100
 
 [tool.blue]
 line-length = 100
+
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
