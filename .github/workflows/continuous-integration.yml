@@ -28,5 +28,3 @@ jobs:
               poetry run make lint
               poetry run make build
               poetry run make test
-          env:
-              INSIDE_GITHUB_ACTIONS: "true"

@@ -1,38 +1,42 @@
 import os
-from pathlib import Path
-from subprocess import DEVNULL, check_call, check_output
-from time import sleep
-from typing import AsyncIterable, Generator
+from typing import AsyncIterable
 
+import pytest
+from asgi_lifespan import LifespanManager
+from fastapi import FastAPI
 from httpx import AsyncClient
 from pytest import fixture
+
+from app.main import app as _app
+from app.utils import inside_container
 
 os.environ['ENV'] = 'testing'
 
 
 @fixture(scope='session')
-def docker() -> Generator:
-    # check if there is a running docker container
-    output = check_output('docker container ls -q -f name=^codebox$', shell=True)
-    if output:
-        # container is running
-        yield
-        return
+def ensure_container() -> None:
+    """
+    Ensure that the code is executed inside a container.
+    """
+    if not inside_container():
+        pytest.exit('This code must be executed inside a container.')
+    return
 
-    makefile_path = Path(__file__).parent.parent
-    check_call(
-        f'make -C {makefile_path} run',
-        stdout=DEVNULL,
-        shell=True,
-    )
-    sleep(1)
-    try:
-        yield
-    finally:
-        check_call('docker stop -t 0 codebox', stdout=DEVNULL, shell=True)
+
+@fixture(scope='session')
+async def app(ensure_container) -> AsyncIterable[FastAPI]:
+    """
+    Create a FastAPI instance.
+    """
+    async with LifespanManager(_app):
+        yield _app
 
 
 @fixture
-async def client(docker) -> AsyncIterable[AsyncClient]:
-    async with AsyncClient(base_url='http://localhost:8000', timeout=None) as client:
+async def client(app: FastAPI) -> AsyncIterable[AsyncClient]:
+    async with AsyncClient(
+        app=app,
+        base_url='http://codebox',
+        headers={'Content-Type': 'application/json'},
+    ) as client:
         yield client

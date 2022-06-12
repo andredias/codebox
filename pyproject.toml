@@ -18,6 +18,7 @@ Hypercorn = "*"
 uvloop = "*"
 
 [tool.poetry.dev-dependencies]
+asgi-lifespan = "*"
 alt-pytest-asyncio = "*"
 bandit = "*"
 blue = "*"

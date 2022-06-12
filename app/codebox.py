@@ -16,9 +16,7 @@ from loguru import logger
 from . import config
 from .models import Command, Response, Sourcefiles
 from .nsjail.nsjail import get_nsjail_args, parse_log
-from .utils import SandboxDirectory, inside_container, save_source
-
-assert inside_container()
+from .utils import SandboxDirectory, save_source
 
 
 def execute(command: Command) -> Response:

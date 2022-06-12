@@ -21,7 +21,6 @@ RUN make
 RUN chmod +x nsjail
 
 
-
 # ---------------------------------------------------------
 
 FROM python:3.10-slim as builder
@@ -46,7 +45,7 @@ RUN pip install --upgrade pip
 WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
 RUN . /venv/bin/activate; \
-    poetry install --no-dev
+    poetry install
 
 
 # ---------------------------------------------------------

@@ -2,14 +2,7 @@ import os
 from functools import cache
 from pathlib import Path
 from subprocess import check_output, run
-from tempfile import TemporaryDirectory, gettempdir
-from unittest.mock import patch
-
-
-def _create_sandbox_dir(suffix=None, prefix=None, dir=None) -> str:
-    tmpdir = Path(dir or gettempdir(), 'sandbox')
-    tmpdir.mkdir()
-    return str(tmpdir)
+from tempfile import TemporaryDirectory
 
 
 class SandboxDirectory(TemporaryDirectory):
@@ -21,12 +14,8 @@ class SandboxDirectory(TemporaryDirectory):
     """
 
     def __init__(self, *args, **kwargs):
-        if 'TESTING' in os.environ:
-            with patch('tempfile.mkdtemp', wraps=_create_sandbox_dir):
-                super().__init__(*args, **kwargs)
-        else:
-            kwargs.setdefault('prefix', 'sandbox_')
-            super().__init__(*args, **kwargs)
+        kwargs.setdefault('prefix', 'sandbox_')
+        super().__init__(*args, **kwargs)
         return
 
     def __enter__(self):

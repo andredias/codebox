@@ -6,7 +6,7 @@ from loguru import logger
 from . import config
 from .codebox import run_project
 from .models import ProjectCore, Response
-from .utils import available_languages
+from .utils import available_languages, inside_container
 
 app = FastAPI()
 
@@ -24,6 +24,8 @@ def languages():
 
 @app.on_event('startup')
 async def startup_event():
+    if not inside_container():
+        raise RuntimeError('This code must be executed inside a container.')
     setup_logger()
 
 

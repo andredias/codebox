@@ -1,11 +1,6 @@
 PWD := $(shell pwd)
 
-run: build
-	docker run -d --rm --init -p 8000:8000 \
-	--ipc=none --privileged \
-	--name codebox codebox
-
-dev:
+run:
 	docker run -it --rm --init -e ENV=development -p 8000:8000 \
 		-v $(PWD)/app:/codebox/app \
 		--ipc=none  \
@@ -36,8 +31,14 @@ build:
 	docker build -t codebox .
 
 test:
-	pytest -sv --cov-report term-missing --cov-report html --cov-branch \
-	       --cov app/
+	docker run -it --rm --init -e ENV=testing -p 8000:8000 \
+		-v $(PWD)/app:/codebox/app \
+		-v $(PWD)/tests:/codebox/tests \
+		--ipc=none  \
+		--privileged  \
+		--name codebox codebox \
+		pytest -sv --cov-report term-missing \
+		   --cov-report html --cov-branch --cov app/
 
 install_hooks:
 	@ scripts/install_hooks.sh
