@@ -1,4 +1,4 @@
-import pytest
+from flaky import flaky
 from httpx import AsyncClient
 from pydantic import parse_obj_as
 from pytest import fixture, mark
@@ -146,7 +146,7 @@ except FileExistsError:
     assert resp.exit_code != 0
 
 
-@pytest.mark.xfail(reason='non-deterministic test')
+@flaky(max_runs=3)
 async def test_subprocess_resource_unavailable(run_python) -> None:
     code = f"""\
 import subprocess
@@ -165,6 +165,7 @@ for _ in range({CGROUP_PIDS_MAX * 2}):
     assert resp.exit_code != 0
 
 
+@flaky(max_runs=3)
 async def test_multiprocess_resource_limits(run_python) -> None:
     code = f"""\
 import time

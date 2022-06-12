@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from flaky import flaky
 from httpx import AsyncClient
 from pytest import fixture
 
@@ -23,6 +24,7 @@ def run_rust(client: AsyncClient):
     return _run_rust
 
 
+@flaky(max_runs=3)
 async def test_hello_world(run_rust):
     code = """\
 fn main() {
