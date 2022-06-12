@@ -31,7 +31,7 @@ build:
 	docker build -t codebox .
 
 test:
-	docker run -it --rm --init -e ENV=testing -p 8000:8000 \
+	docker run --rm --init -e ENV=testing -p 8000:8000 \
 		-v $(PWD)/app:/codebox/app \
 		-v $(PWD)/tests:/codebox/tests \
 		--ipc=none  \
