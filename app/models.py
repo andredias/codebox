@@ -45,9 +45,10 @@ class Response(BaseModel):
             f'exit_code={self.exit_code!r}, elapsed_time={self.elapsed_time * 1000:.0f}ms)'
         )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         return (
-            self.stdout == other.stdout
+            isinstance(other, Response)
+            and self.stdout == other.stdout
             and self.stderr == other.stderr
             and self.exit_code == other.exit_code
             # elapsed_time is not compared because it is not guaranteed to be the same
