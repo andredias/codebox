@@ -8,6 +8,15 @@ run:
 		--name codebox codebox \
 		hypercorn --reload --config=hypercorn.toml "app.main:app"
 
+# use dev to manually run tests in the container
+dev:
+	docker run -it --rm --init -e ENV=testing -p 8000:8000 \
+		-v $(PWD)/app:/codebox/app \
+		-v $(PWD)/tests:/codebox/tests \
+		--ipc=none  \
+		--privileged  \
+		--name codebox codebox bash
+
 lint:
 	@echo
 	isort --diff -c .

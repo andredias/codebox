@@ -1,22 +1,17 @@
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from pytest import raises
 
-from app.utils import SandboxDirectory, save_source
-
-
-def test_sandbox():
-    previous_dir = Path.cwd()
-    with SandboxDirectory() as sandbox:
-        assert Path.cwd() == sandbox
-    assert Path.cwd() == previous_dir
+from app.utils import save_source
 
 
 def test_save_sources():
     contents = 'print("Hello")'
-    with SandboxDirectory() as sandbox:
+    with TemporaryDirectory(prefix='sandbox_') as sandbox:
+        sandbox = Path(sandbox)
         save_source(sandbox, '/app/hello.py', contents)
-        path = Path(sandbox, 'app/hello.py')
+        path = sandbox / 'app/hello.py'
         assert path.exists()
         assert path.read_text() == contents
 

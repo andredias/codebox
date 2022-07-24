@@ -2,30 +2,6 @@ import os
 from functools import cache
 from pathlib import Path
 from subprocess import check_output, run
-from tempfile import TemporaryDirectory
-
-
-class SandboxDirectory(TemporaryDirectory):
-    """
-    Extends TemporaryDirectory to automatically change to directory on enter
-    and change it back on exit.
-    Also, uses the fixed name of 'sandbox' during TESTING to make them possible
-    since the temporary directory name might be part of the response traceback.
-    """
-
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('prefix', 'sandbox_')
-        super().__init__(*args, **kwargs)
-        return
-
-    def __enter__(self):
-        self.prev_dir = Path.cwd()
-        os.chdir(self.name)
-        return Path(self.name)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir(self.prev_dir)
-        super().__exit__(exc_type, exc_value, traceback)
 
 
 def save_source(dest_dir: Path, filepath: str, contents: str) -> None:

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import orjson
 from pydantic import BaseModel as _BaseModel
 
@@ -24,8 +22,8 @@ Sourcefiles = dict[str, str]
 
 class Command(BaseModel):
     command: str
-    stdin: Optional[str] = None
-    timeout: Optional[float] = config.TIMEOUT
+    stdin: str | None = None
+    timeout: float | None = config.TIMEOUT
 
 
 class ProjectCore(BaseModel):
