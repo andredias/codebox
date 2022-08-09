@@ -22,5 +22,4 @@ CGROUP_NET_CLS_MOUNT: str = '/sys/fs/cgroup/net_cls'
 CGROUP_CPU_MOUNT: str = '/sys/fs/cgroup/cpu'
 
 CGROUPV2_MOUNT: str = '/sys/fs/cgroup'
-USE_CGROUPV2: bool = True
 CGROUP_PARENT: str = 'NSJAIL'

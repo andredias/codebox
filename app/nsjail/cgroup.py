@@ -9,7 +9,6 @@ from ..config import (
     CGROUP_PARENT,
     CGROUP_PIDS_MOUNT,
     CGROUPV2_MOUNT,
-    USE_CGROUPV2,
 )
 
 
@@ -32,30 +31,16 @@ def get_version() -> int:
     controllers_path = Path(CGROUPV2_MOUNT, 'cgroup.controllers')
     v2_exists = controllers_path.exists()
 
-    config_version = 2 if USE_CGROUPV2 else 1
-
-    if v1_exists and v2_exists:
-        # Probably hybrid mode. Use whatever is set in the config.
-        return config_version
-    elif v1_exists:
-        if config_version == 2:
-            logger.warning(
-                'NsJail is configured to use cgroupv2, but only cgroupv1 was detected on the '
-                'system. Either use_cgroupv2 or cgroupv2_mount is incorrect. Snekbox is unable '
-                'to override use_cgroupv2. If NsJail has been configured to use cgroups, then '
-                'it will fail. In such case, please correct the config manually.'
-            )
-        return 1
-    elif v2_exists:
-        return 2
-    else:
+    version = v2_exists and 2 or v1_exists and 1 or 0
+    if version == 0:
         logger.warning(
             f'Neither the cgroupv1 controller mounts, nor {str(controllers_path)!r} exists. '
             'Either cgroup_xxx_mount and cgroupv2_mount are misconfigured, or all '
             'corresponding v1 controllers are disabled on the system. '
             'Falling back to the use_cgroupv2 NsJail setting.'
         )
-        return config_version
+        version = 2
+    return version
 
 
 def init() -> int:
