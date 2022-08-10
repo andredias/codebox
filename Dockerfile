@@ -1,7 +1,7 @@
 FROM python:3.10-slim-buster as nsjail-builder
 
-RUN apt-get -y update \
-    && apt-get install -y \
+RUN apt -y update \
+    && apt install -y \
     bison=2:3.3.* \
     flex=2.6.* \
     g++=4:8.3.* \
@@ -29,18 +29,17 @@ LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && \
-    apt-get install -y --no-install-recommends build-essential curl && \
-    apt-get clean && \
+RUN DEBIAN_FRONTEND=noninteractive apt update && \
+    DEBIAN_FRONTEND=noninteractive apt -y upgrade && \
+    apt install -y --no-install-recommends build-essential curl && \
+    apt clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Build Codebox
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-
-RUN python -m venv /venv
-ENV PATH=/venv/bin:/root/.local/bin:${PATH}
 RUN pip install --upgrade pip
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN python -m venv /venv
+ENV PATH=/venv/bin:$HOME/.poetry/bin:${PATH}
 
 WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
@@ -52,7 +51,7 @@ RUN . /venv/bin/activate; \
 
 FROM python:3.10-slim-buster as final
 
-RUN apt-get -y update && apt-get install -y --no-install-recommends \
+RUN apt -y update && apt install -y --no-install-recommends \
     # nsjail needs these
     libnl-route-3-200=3.4.* \
     libprotobuf17=3.6.* \
@@ -68,8 +67,8 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN set -eux; \
-    apt-get -y update; \
-    apt-get install -y --no-install-recommends \
+    apt -y update; \
+    apt install -y --no-install-recommends \
     ca-certificates \
     gcc \
     libc6-dev \
@@ -83,7 +82,7 @@ RUN set -eux; \
     rustup --version; \
     cargo --version; \
     rustc --version; \
-    apt-get remove -y --auto-remove; \
+    apt remove -y --auto-remove; \
     rm -rf /var/lib/apt/lists/*;
 
 # help debugging
