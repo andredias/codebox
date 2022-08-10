@@ -39,7 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && \
 RUN pip install --upgrade pip
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 RUN python -m venv /venv
-ENV PATH=/venv/bin:$HOME/.poetry/bin:${PATH}
+ENV PATH=/venv/bin:/root/.poetry/bin:${PATH}
 
 WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
