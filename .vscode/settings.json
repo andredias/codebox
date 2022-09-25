@@ -1,9 +1,0 @@
-{
-  "restructuredtext.confPath": "",
-  "editor.formatOnSave": true,
-  "json.schemas": [],
-  "emmet.triggerExpansionOnTab": true,
-  "files.insertFinalNewline": true,
-  "python.formatting.blackPath": "blue",
-  "python.formatting.provider": "black"
-}
