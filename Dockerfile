@@ -36,9 +36,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && \
     rm -rf /var/lib/apt/lists/*
 
 # Build Codebox
-RUN pip install --upgrade pip
 RUN curl -sSL https://install.python-poetry.org | python -
 RUN python -m venv /venv
+RUN pip install --upgrade pip
 ENV PATH=/venv/bin:/root/.local/bin:${PATH}
 
 WORKDIR /codebox
