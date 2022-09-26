@@ -4,92 +4,8 @@ Codebox
 
 .. image:: https://github.com/andredias/codebox/actions/workflows/continuous-integration.yml/badge.svg
 
-Codebox is a container that runs arbitrary source code in a sandbox.
-
-
-Running Codebox
-===============
-
-1. Build the image. You can clone/download the project from GitHub or build the image directly from the repository::
-
-   $ docker build -t codebox https://github.com/andredias/codebox.git#main
-
-2. Run the container::
-
-   $ docker run -it --rm --privileged -p 8000:8000 codebox
-
-3. Visit http://localhost:8000/docs to access the automatic interactive API documentation.
-   Click on ``POST /execute`` and then on the ``Try it out`` button.
-
-
-Example 1
----------
-
-.. code:: json
-
-   {
-      "sources": {
-         "hello.py": "print('Hello World!')"
-      },
-      "commands": [
-         {
-            "command": "/usr/local/bin/python hello.py"
-         }
-      ]
-   }
-
-
-Example 2
----------
-
-.. code:: json
-
-   {
-      "sources": {
-         "app/__init__.py": "",
-         "app/main.py": "import sys\n\nfor line in sys.stdin.readlines():\n    sys.stdout.write(line)\n"
-      },
-      "commands": [
-         {
-            "command": "/usr/local/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
-         }
-      ]
-   }
-
-
-Example 3
----------
-
-.. code:: json
-
-   {
-      "sources": {},
-      "commands": [
-         {
-            "command": "/bin/sleep 1", "timeout": 0.1
-         }
-      ]
-   }
-
-
-Example 4
----------
-
-.. code:: json
-
-   {
-      "sources": {
-         "code.rs": "fn main() {\n    println!(\"Hello World!\");\n}"
-      },
-      "commands": [
-         {
-            "command": "/usr/local/cargo/bin/rustc code.rs", "timeout": 0.5
-         },
-         {
-            "command":"./code", "timeout": 0.1
-         }
-      ]
-   }
+Codebox is a container designed to run untrusted code in a secure way,
+from a restricted virtualized environment.
 
 
 .. important::
@@ -176,35 +92,208 @@ A simplified Python code version of the executing process:
          responses.append(resp)
       return responses
 
-..
-   Python Third-party Packages
-   ---------------------------
 
-   By default, the Python interpreter has no access to any packages besides
-   the standard library.
-   Even Codebox's own dependencies like FastAPI and Hypercorn are not exposed.
+Running Codebox
+===============
 
-   To expose third-party Python packages during evaluation,
-   install them to a custom user site:
+Without a Repository
+--------------------
 
-   .. code:: sh
+1. Build the image:
 
-      docker exec codebox /bin/sh -c 'PYTHONUSERBASE=/codebox/user_base pip install numpy'
+   $ docker build -t codebox https://github.com/andredias/codebox.git#main
 
-   In the above command, ``codebox`` is the name of the running container.
-   The name may be different and can be checked with ``docker ps``.
+2. Run the container::
 
-   The packages will be installed to the user site within
-   ``/codebox/user_base``. To persist the installed packages, a volume for
-   the directory can be created with Docker. For an example, see
-   `docker-compose.yml <docker-compose.yml>`_.
+   $ docker run -it --rm --privileged -p 8000:8000 codebox
 
-   If ``pip``, ``setuptools``, or ``wheel`` are dependencies or need to be
-   exposed, then use the ``--ignore-installed`` option with pip. However,
-   note that this will also re-install packages present in the custom user
-   site, effectively making caching it futile. Current limitations of pip
-   don’t allow it to ignore packages extant outside the installation
-   destination.
+
+From a Repository
+-----------------
+
+#. Clone/download the project
+#. Build the image:
+
+   .. code:: console
+
+      $ make build
+
+#. Run the container:
+
+   .. code:: console
+
+      $ make run
+
+
+Usage Examples
+==============
+
+You can execute the examples accessing the API through ``http://localhost:8000/execute``
+or via the interactive documentation at ``http://localhost:8000/docs``.
+
+
+
+Example 1 - Python Hello World
+------------------------------
+
+Using ``http://localhost:8000/docs``:
+
+.. code:: json
+
+   {
+      "sources": {
+         "hello.py": "print('Hello World!')"
+      },
+      "commands": [
+         {
+            "command": "/usr/local/bin/python hello.py"
+         }
+      ]
+   }
+
+----
+
+Using httpie_:
+
+.. code:: console
+
+   $ http :8000/execute sources['hello.py']="print('Hello World')" \
+          commands[]['command']='/usr/local/bin/python hello.py'
+
+
+Example 2 - Reading from stdin
+------------------------------
+
+Using ``http://localhost:8000/docs``:
+
+.. code:: json
+
+   {
+      "sources": {
+         "app/__init__.py": "",
+         "app/main.py": "import sys\n\nfor line in sys.stdin.readlines():\n    sys.stdout.write(line)\n"
+      },
+      "commands": [
+         {
+            "command": "/usr/local/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
+         }
+      ]
+   }
+
+----
+
+Using ``httpie``:
+
+.. code:: console
+
+   $ http :8000/execute <<< '{
+      "sources": {
+         "app/__init__.py": "",
+         "app/main.py": "import sys\n\nfor line in sys.stdin.readlines():\n    sys.stdout.write(line)\n"
+      },
+      "commands": [
+         {
+            "command": "/usr/local/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
+         }
+      ]
+   }'
+
+
+Example 3 - Bash Command
+------------------------
+
+.. code:: json
+
+   {
+      "sources": {},
+      "commands": [
+         {
+            "command": "/bin/sleep 1", "timeout": 0.1
+         }
+      ]
+   }
+
+
+----
+
+.. code:: console
+
+   $ http :8000/execute <<< '{
+       "sources": {},
+       "commands": [
+         {
+            "command": "/bin/sleep 1",
+            "timeout": 0.1
+         }
+      ]
+   }'
+
+
+Example 3 - Get Available Python Packages
+-----------------------------------------
+
+.. code:: json
+
+   {
+      "sources": {},
+      "commands": [
+         {
+            "command": "/venv/bin/pip freeze", "timeout": 1.0
+         }
+      ]
+   }
+
+
+Example 4 - Rust Hello World
+----------------------------
+
+.. code:: json
+
+   {
+      "sources": {
+         "code.rs": "fn main() {\n    println!(\"Hello World!\");\n}"
+      },
+      "commands": [
+         {
+            "command": "/usr/local/cargo/bin/rustc code.rs", "timeout": 0.5
+         },
+         {
+            "command":"./code", "timeout": 0.1
+         }
+      ]
+   }
+
+
+Example 5 - Unit Test
+---------------------
+
+.. code:: json
+
+   {
+      "sources": {
+         "main.py": "def double(x: int) -> int:\n    return 2 * x\n",
+         "test_main.py": "from main import double\n\ndef test_double() -> None:\n    assert double(2) == 4\n"
+      },
+      "commands": [
+         {
+            "command": "/venv/bin/pytest", "timeout": 1.0
+         }
+      ]
+   }
+
+.. code:: console
+
+   $ http :8000/execute <<< '{
+      "sources": {
+         "main.py": "def double(x: int) -> int:\n    return 2 * x\n",
+         "test_main.py": "from main import double\n\ndef test_double() -> None:\n    assert double(2) == 4\n"
+      },
+      "commands": [
+         {
+            "command": "/venv/bin/pytest", "timeout": 1.0
+         }
+      ]
+   }'
 
 
 References
@@ -232,3 +321,4 @@ Python Packages Used
 .. _NsJail: https://github.com/google/nsjail
 .. _Sandboxing Code: https://developers.google.com/sandboxed-api/docs/sandbox-overview
 .. _Snekbox: https://github.com/python-discord/snekbox
+.. _httpie: https://httpie.io/cli
