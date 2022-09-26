@@ -23,7 +23,7 @@ RUN chmod +x nsjail
 
 # ---------------------------------------------------------
 
-FROM python:3.10-slim as builder
+FROM python:3.10-slim-buster as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
 ENV PYTHONDONTWRITEBYTECODE=1
