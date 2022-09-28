@@ -46,6 +46,36 @@ COPY pyproject.toml poetry.lock ./
 RUN . /venv/bin/activate; \
     poetry install
 
+# ---------------------------------------------------------
+
+FROM python:3.10-slim-buster as final-no-rust
+
+RUN apt -y update && apt install -y --no-install-recommends \
+    # nsjail needs these
+    libnl-route-3-200=3.4.* \
+    libprotobuf17=3.6.* \
+    # sqlite3
+    sqlite3 \
+    # clean up
+    && apt autoclean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# help debugging
+RUN echo 'alias ll="ls -lahF --color"' >> $HOME/.bashrc
+
+# Codebox configuration
+
+COPY --from=builder /venv /venv
+COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
+ENV PATH=/venv/bin:${PATH}
+
+# Install Codebox
+WORKDIR /codebox
+COPY hypercorn.toml .
+COPY app/ ./app
+
+CMD ["hypercorn", "--config=hypercorn.toml", "app.main:app"]
+
 
 # ---------------------------------------------------------
 
