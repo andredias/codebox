@@ -146,7 +146,7 @@ Using ``http://localhost:8000/docs``:
       },
       "commands": [
          {
-            "command": "/usr/local/bin/python hello.py"
+            "command": "/venv/bin/python hello.py"
          }
       ]
    }
@@ -158,7 +158,7 @@ Using httpie_:
 .. code:: console
 
    $ http :8000/execute sources['hello.py']="print('Hello World')" \
-          commands[]['command']='/usr/local/bin/python hello.py'
+          commands[]['command']='/venv/bin/python hello.py'
 
 
 Example 2 - Reading from stdin
@@ -175,7 +175,7 @@ Using ``http://localhost:8000/docs``:
       },
       "commands": [
          {
-            "command": "/usr/local/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
+            "command": "/venv/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
          }
       ]
    }
@@ -193,7 +193,7 @@ Using ``httpie``:
       },
       "commands": [
          {
-            "command": "/usr/local/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
+            "command": "/venv/bin/python app/main.py", "timeout": 0.1, "stdin": "1\n2\n3"
          }
       ]
    }'
