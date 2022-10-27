@@ -1,5 +1,5 @@
 import os
-from typing import AsyncIterable
+from collections.abc import AsyncIterable
 
 import pytest
 from asgi_lifespan import LifespanManager
