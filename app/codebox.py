@@ -6,7 +6,7 @@ See config/snekbox.cfg for the default NsJail configuration.
 
 import os
 import shlex
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from subprocess import TimeoutExpired, run
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -21,7 +21,10 @@ from .utils import save_source
 
 
 def _execute(
-    arguments: Sequence[str], stdin: str | None, timeout: float | None = config.TIMEOUT
+    arguments: Sequence[str],
+    stdin: str | None,
+    timeout: float | None = config.TIMEOUT,
+    cwd: str | Path | None = None,
 ) -> Response:
     """
     Execution core
@@ -35,6 +38,7 @@ def _execute(
             arguments,  # type: ignore
             input=stdin,
             timeout=timeout,
+            cwd=cwd,
             capture_output=True,
             text=True,
         )
@@ -75,7 +79,24 @@ def execute(command: Command, sandbox_path: Path) -> Response:
     return response
 
 
-def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]:
+def execute_insecure(command: Command, sandbox_path: Path) -> Response:
+    """
+    Execute a command directly in the container, without an isolated environment.
+    It is interesting for running each command in a different container
+    or to run the container in a different platform that doesn't run NsJail,
+    such as linux/arm64 on MacOS
+    """
+    return _execute(
+        (*shlex.split(command.command),),
+        stdin=command.stdin,
+        timeout=command.timeout,
+        cwd=sandbox_path,
+    )
+
+
+def run_project(
+    sources: Sourcefiles, commands: list[Command], exec_func: Callable = execute
+) -> list[Response]:
     responses = []
     with TemporaryDirectory(prefix='sandbox_') as sandbox:
         sandbox_path = Path(sandbox)
@@ -90,7 +111,7 @@ def run_project(sources: Sourcefiles, commands: list[Command]) -> list[Response]
         if responses:
             return responses
         for command in commands:
-            resp = execute(command, sandbox_path)
+            resp = exec_func(command, sandbox_path)
             logger.info(resp)
             responses.append(resp)
     return responses

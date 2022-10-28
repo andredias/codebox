@@ -1,17 +1,17 @@
 import asyncio
 
+import pytest
 from httpx import AsyncClient
 
 from app.models import Command, ProjectCore, Response
 
 
-async def test_multiple_calls(client: AsyncClient) -> None:
+@pytest.mark.parametrize('path', ['/execute', '/execute_insecure'])
+async def test_multiple_calls(client: AsyncClient, path: str) -> None:
     async def call_run_project(code: str):
         sources = {'test.py': code}
         command = Command(command='/venv/bin/python test.py')
-        resp = await client.post(
-            '/execute', json=ProjectCore(sources=sources, commands=[command]).dict()
-        )
+        resp = await client.post(path, json=ProjectCore(sources=sources, commands=[command]).dict())
         return Response(**(resp.json()[0]))
 
     tasks = []
