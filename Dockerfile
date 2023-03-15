@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster as nsjail-builder
+FROM python:3.11-slim-buster as nsjail-builder
 
 RUN apt -y update \
     && apt install -y \
@@ -23,7 +23,7 @@ RUN chmod +x nsjail
 
 # ---------------------------------------------------------
 
-FROM python:3.10-slim-buster as builder
+FROM python:3.11-slim-buster as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -36,19 +36,21 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && \
     rm -rf /var/lib/apt/lists/*
 
 # Build Codebox
-RUN curl -sSL https://install.python-poetry.org | python -
+ENV POETRY_VERSION=1.3.2
+RUN curl https://install.python-poetry.org | python -
+
 RUN python -m venv /venv
-RUN pip install --upgrade pip
 ENV PATH=/venv/bin:/root/.local/bin:${PATH}
 
 WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
+
 RUN . /venv/bin/activate; \
-    poetry install
+    poetry install --only main --no-interaction
 
 # ---------------------------------------------------------
 
-FROM python:3.10-slim-buster as final-no-rust
+FROM python:3.11-slim-buster as final-no-rust
 
 RUN apt -y update && apt install -y --no-install-recommends \
     # nsjail needs these
@@ -79,7 +81,7 @@ CMD ["hypercorn", "--config=hypercorn.toml", "app.main:app"]
 
 # ---------------------------------------------------------
 
-FROM python:3.10-slim-buster as final
+FROM python:3.11-slim-buster as final
 
 RUN apt -y update && apt install -y --no-install-recommends \
     # nsjail needs these
