@@ -16,14 +16,13 @@ def controller_exists(cgroup_version: int) -> bool:
     """Return True if the swap memory cgroup controller is enabled."""
     if cgroup_version == 1:
         return Path(CGROUP_MEM_MOUNT, 'memory.memsw.max_usage_in_bytes').exists()
-    else:
-        # Create a child cgroup because memory.swap isn't available in the root cgroup.
-        child = Path(CGROUPV2_MOUNT, f'codebox-temp-{uuid.uuid4()}')
-        child.mkdir()
-        swap_controller_exists = (child / 'memory.swap.max').exists()
-        child.rmdir()
+    # Create a child cgroup because memory.swap isn't available in the root cgroup.
+    child = Path(CGROUPV2_MOUNT, f'codebox-temp-{uuid.uuid4()}')
+    child.mkdir()
+    swap_controller_exists = (child / 'memory.swap.max').exists()
+    child.rmdir()
 
-        return swap_controller_exists
+    return swap_controller_exists
 
 
 def is_enabled() -> bool:

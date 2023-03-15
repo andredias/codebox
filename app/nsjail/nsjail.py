@@ -1,6 +1,6 @@
 import re
+from collections.abc import Iterable
 from functools import cache
-from typing import Iterable
 
 from loguru import logger
 
@@ -62,7 +62,7 @@ def get_nsjail_args() -> list[str]:
         '--cgroup_mem_max', str(CGROUP_MEM_MAX),
         '--cgroup_pids_max', str(CGROUP_PIDS_MAX),
     ]
-    if cgroup_version == 2:
+    if cgroup_version == 2:  # noqa: PLR2004
         nsjail_args.append('--use_cgroupv2')
 
     if ignore_swap_limits:

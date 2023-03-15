@@ -46,8 +46,10 @@ def _execute(
         stderr = process.stderr
         exit_code = process.returncode
     except TimeoutExpired as error:
-        stdout = error.stdout or ''
-        stderr = error.stderr or f'Timeout Error. Exceeded {error.timeout}s'
+        stdout = error.stdout and error.stdout.decode() or ''
+        stderr = (
+            error.stderr and error.stderr.decode() or f'Timeout Error. Exceeded {error.timeout}s'
+        )
     except Exception as error:
         stderr = str(error)
     elapsed_time = perf_counter() - start_time
@@ -100,7 +102,7 @@ def run_project(
     responses = []
     with TemporaryDirectory(prefix='sandbox_') as sandbox:
         sandbox_path = Path(sandbox)
-        os.chmod(sandbox_path, 0o0777)  # to be used in nsjail later
+        os.chmod(sandbox_path, 0o0777)  # to be used in nsjail later  # noqa: S103
         logger.info(sources)
         for filepath, contents in sources.items():
             try:

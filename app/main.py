@@ -14,14 +14,12 @@ app = FastAPI()
 
 @app.post('/execute', response_model=list[Response])
 def execute(project: ProjectCore):
-    responses = run_project(project.sources, project.commands)
-    return responses
+    return run_project(project.sources, project.commands)
 
 
 @app.post('/execute_insecure', response_model=list[Response])
 def execute_insecure(project: ProjectCore):
-    responses = run_project(project.sources, project.commands, exec_func=exec_insec)
-    return responses
+    return run_project(project.sources, project.commands, exec_func=exec_insec)
 
 
 @app.get('/languages')

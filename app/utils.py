@@ -22,7 +22,7 @@ def inside_container() -> bool:
     See:
     * https://stackoverflow.com/questions/23513045/how-to-check-if-a-process-is-running-inside-docker-container  # noqa: E501
     * https://stackoverflow.com/a/25518538/266362
-    """
+    """  # noqa: E501
     return (
         Path('/.dockerenv').exists()
         or Path('/run/.containerenv').exists()

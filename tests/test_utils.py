@@ -8,8 +8,8 @@ from app.utils import save_source
 
 def test_save_sources():
     contents = 'print("Hello")'
-    with TemporaryDirectory(prefix='sandbox_') as sandbox:
-        sandbox = Path(sandbox)
+    with TemporaryDirectory(prefix='sandbox_') as sandbox_:
+        sandbox = Path(sandbox_)
         save_source(sandbox, '/app/hello.py', contents)
         path = sandbox / 'app/hello.py'
         assert path.exists()
