@@ -46,7 +46,7 @@ WORKDIR /codebox
 COPY pyproject.toml poetry.lock ./
 
 RUN . /venv/bin/activate; \
-    poetry install --only main --no-interaction
+    poetry install --no-interaction
 
 # ---------------------------------------------------------
 
