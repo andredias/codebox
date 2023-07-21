@@ -43,7 +43,7 @@ test:
 		--ipc=none  \
 		--privileged  \
 		--name codebox codebox \
-		pytest -sv --cov-report term-missing \
+		pytest -svx --cov-report term-missing \
 		   --cov-report html --cov-branch --cov app/
 
 install_hooks:
