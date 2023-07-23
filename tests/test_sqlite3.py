@@ -15,7 +15,7 @@ def run_sqlite3(client: AsyncClient):
             ),
         ]
         resp = await client.post(
-            '/execute', json=ProjectCore(sources=sources, commands=commands).dict()
+            '/execute', json=ProjectCore(sources=sources, commands=commands).model_dump()
         )
         return Response(**(resp.json()[0]))
 

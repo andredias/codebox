@@ -11,7 +11,9 @@ async def test_multiple_calls(client: AsyncClient, path: str) -> None:
     async def call_run_project(code: str):
         sources = {'test.py': code}
         command = Command(command='/venv/bin/python test.py')
-        resp = await client.post(path, json=ProjectCore(sources=sources, commands=[command]).dict())
+        resp = await client.post(
+            path, json=ProjectCore(sources=sources, commands=[command]).model_dump()
+        )
         return Response(**(resp.json()[0]))
 
     tasks = []

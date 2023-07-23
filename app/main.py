@@ -12,18 +12,18 @@ from .utils import available_languages, inside_container
 app = FastAPI()
 
 
-@app.post('/execute', response_model=list[Response])
-def execute(project: ProjectCore):
+@app.post('/execute')
+def execute(project: ProjectCore) -> list[Response]:
     return run_project(project.sources, project.commands)
 
 
-@app.post('/execute_insecure', response_model=list[Response])
-def execute_insecure(project: ProjectCore):
+@app.post('/execute_insecure')
+def execute_insecure(project: ProjectCore) -> list[Response]:
     return run_project(project.sources, project.commands, exec_func=exec_insec)
 
 
 @app.get('/languages')
-def languages():
+def languages() -> dict[str, str]:
     return available_languages()
 
 

@@ -17,7 +17,7 @@ def run_rust(client: AsyncClient):
             Command(command=f'./{Path(filename).stem}', timeout=0.1),
         ]
         resp = await client.post(
-            '/execute', json=ProjectCore(sources=sources, commands=commands).dict()
+            '/execute', json=ProjectCore(sources=sources, commands=commands).model_dump()
         )
         return [Response(**r) for r in resp.json()]
 

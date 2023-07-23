@@ -36,10 +36,9 @@ def available_languages() -> dict[str, str]:
         resp = check_output((lang_name, '--version'), text=True)
         return resp.split()
 
-    languages = {}
-    languages['python'] = get_version('python')[1]
-    languages['rust'] = get_version('rustc')[1]
-    languages['sqlite3'] = get_version('sqlite3')[0]
-    languages['bash'] = get_version('bash')[3]
-
-    return languages
+    return {
+        'python': get_version('python')[1],
+        'rust': get_version('rustc')[1],
+        'sqlite3': get_version('sqlite3')[0],
+        'bash': get_version('bash')[3],
+    }

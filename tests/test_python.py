@@ -1,10 +1,12 @@
 from flaky import flaky
 from httpx import AsyncClient
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 from pytest import fixture, mark
 
 from app.config import CGROUP_MEM_MAX, CGROUP_PIDS_MAX, TIMEOUT
 from app.models import Command, ProjectCore, Response
+
+list_response = TypeAdapter(list[Response])
 
 
 @fixture
@@ -13,7 +15,7 @@ def run_python(client: AsyncClient):
         sources = {'test.py': code}
         command = Command(command='/venv/bin/python test.py', timeout=timeout)
         resp = await client.post(
-            '/execute', json=ProjectCore(sources=sources, commands=[command]).dict()
+            '/execute', json=ProjectCore(sources=sources, commands=[command]).model_dump()
         )
         return Response(**(resp.json()[0]))
 
@@ -77,10 +79,10 @@ for line in sys.stdin.readlines():
 @mark.parametrize('sources,commands,responses', projects)
 async def test_run_project(client, sources, commands, responses):
     results = await client.post(
-        '/execute', json=ProjectCore(sources=sources, commands=commands).dict()
+        '/execute', json=ProjectCore(sources=sources, commands=commands).model_dump()
     )
     assert results.status_code == 200
-    assert parse_obj_as(list[Response], results.json()) == responses
+    assert list_response.validate_python(results.json()) == responses
 
 
 async def test_while_true(run_python):

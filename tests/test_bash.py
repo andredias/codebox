@@ -12,7 +12,7 @@ def run_bash(client: AsyncClient):
             Command(command='/bin/bash test.sh', timeout=0.1),
         ]
         resp = await client.post(
-            '/execute', json=ProjectCore(sources=sources, commands=commands).dict()
+            '/execute', json=ProjectCore(sources=sources, commands=commands).model_dump()
         )
         return Response(**(resp.json()[0]))
 

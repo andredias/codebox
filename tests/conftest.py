@@ -20,7 +20,6 @@ def ensure_container() -> None:
     """
     if not inside_container():
         pytest.exit('This code must be executed inside a container.')
-    return
 
 
 @fixture(scope='session')
