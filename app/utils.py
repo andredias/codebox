@@ -26,7 +26,11 @@ def inside_container() -> bool:
     return (
         Path('/.dockerenv').exists()
         or Path('/run/.containerenv').exists()
-        or bool(run(['grep', ':/docker', '/proc/1/cgroup'], capture_output=True, text=True).stdout)
+        or bool(
+            run(
+                ['/usr/bin/grep', ':/docker', '/proc/1/cgroup'], capture_output=True, text=True
+            ).stdout
+        )
     )
 
 
