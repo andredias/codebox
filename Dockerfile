@@ -37,7 +37,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && \
 
 # Build Codebox
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-ENV POETRY_VERSION=1.4.1
+ENV POETRY_VERSION=1.5.1
 RUN curl https://install.python-poetry.org | python -
 
 RUN python -m venv /venv
