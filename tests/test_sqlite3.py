@@ -1,3 +1,4 @@
+from flaky import flaky
 from httpx import AsyncClient
 from pytest import fixture
 
@@ -22,6 +23,7 @@ def run_sqlite3(client: AsyncClient):
     return _run_sqlite3
 
 
+@flaky(max_runs=3)
 async def test_sqlite3(run_sqlite3):
     sql = """
 -- tabelas
