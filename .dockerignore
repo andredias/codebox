@@ -1,1 +1,4 @@
-*/__pycache__
+!poetry.lock
+!hypercorn.toml
+!codebox/
+**/__pycache__

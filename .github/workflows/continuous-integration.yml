@@ -27,5 +27,6 @@ jobs:
         - name: Run tests
           run: |
               poetry run make lint
+              poetry run make audit
               poetry run make build
               poetry run make test
