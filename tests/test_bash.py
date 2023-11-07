@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 from pytest import fixture
 
-from app.models import Command, ProjectCore, Response
+from codebox.models import Command, ProjectCore, Response
 
 
 @fixture

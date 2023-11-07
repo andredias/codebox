@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 from pytest import fixture
 
-from app.main import app as _app
-from app.utils import inside_container
+from codebox.main import app as _app
+from codebox.utils import inside_container
 
 os.environ['ENV'] = 'testing'
 

@@ -1,4 +1,4 @@
-from app.models import Response
+from codebox.models import Response
 
 
 def test_response():

@@ -1,4 +1,5 @@
 FROM python:3.11-slim-buster as nsjail-builder
+LABEL mantainer="André Felipe Dias <andref.dias@gmail.com>"
 
 RUN apt -y update \
     && apt install -y \
@@ -26,28 +27,22 @@ RUN chmod +x nsjail
 FROM python:3.11-slim-buster as builder
 LABEL maintainer="André Felipe Dias <andre.dias@pronus.io>"
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install -y --no-install-recommends build-essential curl
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-RUN DEBIAN_FRONTEND=noninteractive apt update && \
-    DEBIAN_FRONTEND=noninteractive apt -y upgrade && \
-    apt install -y --no-install-recommends build-essential curl && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Build Codebox
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-ENV POETRY_VERSION=1.5.1
-RUN curl https://install.python-poetry.org | python -
-
 RUN python -m venv /venv
-ENV PATH=/venv/bin:/root/.local/bin:${PATH}
 
-WORKDIR /codebox
+ENV POETRY_VERSION=1.5.1
+ENV POETRY_HOME=/opt/poetry
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl -sSL https://install.python-poetry.org | python -
+
+WORKDIR /app
 COPY pyproject.toml poetry.lock ./
-
 RUN . /venv/bin/activate; \
-    poetry install --no-interaction
+    $POETRY_HOME/bin/poetry install --no-interaction
 
 # ---------------------------------------------------------
 
@@ -128,8 +123,8 @@ COPY --from=nsjail-builder /nsjail/nsjail /usr/sbin
 ENV PATH=/venv/bin:${PATH}
 
 # Install Codebox
-WORKDIR /codebox
+WORKDIR /app
 COPY hypercorn.toml .
-COPY app/ ./app
+COPY codebox/ ./codebox
 
-CMD ["hypercorn", "--config=hypercorn.toml", "app.main:app"]
+CMD ["hypercorn", "--config=hypercorn.toml", "codebox.main:app"]

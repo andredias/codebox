@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 from pytest import raises
 
-from app.utils import save_source
+from codebox.utils import save_source
 
 
 def test_save_sources():

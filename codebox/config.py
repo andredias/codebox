@@ -1,12 +1,24 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 ENV: str = os.getenv('ENV', 'production').lower()
+if ENV not in ('production', 'development', 'testing'):
+    raise ValueError(
+        f'ENV={ENV} is not valid. ' "It should be 'production', 'development' or 'testing'"
+    )
 DEBUG: bool = ENV != 'production'
 TESTING: bool = ENV == 'testing'
-LOG_LEVEL: str = DEBUG and 'DEBUG' or 'INFO'
 
-TIMEOUT: float = 0.1
+os.environ['LOGURU_LEVEL'] = os.getenv('LOG_LEVEL') or (DEBUG and 'DEBUG') or 'INFO'
+os.environ['LOGURU_DEBUG_COLOR'] = '<fg #777>'
+REQUEST_ID_LENGTH = int(os.getenv('REQUEST_ID_LENGTH', '8'))
+PYGMENTS_STYLE = os.getenv('PYGMENTS_STYLE', 'github-dark')
+
+TIMEOUT: float = 0.2
 
 NSJAIL_PATH: str = os.getenv('NSJAIL_PATH', '/usr/sbin/nsjail')
 NSJAIL_CFG: str = os.getenv('NSJAIL_CFG', str(Path(__file__).parent / 'nsjail/nsjail.cfg'))

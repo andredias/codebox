@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from httpx import AsyncClient
 
-from app.models import Command, ProjectCore, Response
+from codebox.models import Command, ProjectCore, Response
 
 
 @pytest.mark.parametrize('path', ['/execute', '/execute_insecure'])

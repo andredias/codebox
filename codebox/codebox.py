@@ -103,7 +103,7 @@ def run_project(
     with TemporaryDirectory(prefix='sandbox_') as sandbox:
         sandbox_path = Path(sandbox)
         os.chmod(sandbox_path, 0o0777)  # to be used in nsjail later  # noqa: S103
-        logger.info(sources)
+        logger.info('run project', source_files=sources)
         for filepath, contents in sources.items():
             try:
                 save_source(sandbox_path, filepath, contents)
