@@ -16,7 +16,7 @@ from loguru import logger
 
 from . import config
 from .models import Command, Response, Sourcefiles
-from .nsjail.nsjail import get_nsjail_args, parse_log
+from .nsjail.nsjail import NSJAIL_ARGS, parse_log
 from .utils import save_source
 
 
@@ -60,7 +60,6 @@ def execute(command: Command, sandbox_path: Path) -> Response:
     """
     Execute a command in an isolated environment and return its response.
     """
-    nsjail_args = get_nsjail_args()
     with NamedTemporaryFile() as nsj_log:
         # fmt: off
         arguments = (
@@ -70,7 +69,7 @@ def execute(command: Command, sandbox_path: Path) -> Response:
             '--cwd', '/sandbox',
             '--bindmount', f'{sandbox_path}:/sandbox',
             '--log', nsj_log.name,
-            *nsjail_args,
+            *NSJAIL_ARGS,
             '--', *shlex.split(command.command)
         )
         # fmt: on
@@ -83,8 +82,8 @@ def execute(command: Command, sandbox_path: Path) -> Response:
 
 def execute_insecure(command: Command, sandbox_path: Path) -> Response:
     """
-    Execute a command directly in the container, without an isolated environment.
-    It is interesting for running each command in a different container
+    Execute a command directly in the container, in an isolated environment.
+    It is suitable for running each command in a different container
     or to run the container in a different platform that doesn't run NsJail,
     such as linux/arm64 on MacOS
     """

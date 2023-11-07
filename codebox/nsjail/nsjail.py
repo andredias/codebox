@@ -74,3 +74,6 @@ def get_nsjail_args() -> list[str]:
         nsjail_args.extend(('--cgroup_mem_swap_max', str(CGROUP_MEM_SWAP_MAX)))
     # fmt: on
     return nsjail_args
+
+
+NSJAIL_ARGS = get_nsjail_args()
