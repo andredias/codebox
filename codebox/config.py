@@ -18,7 +18,7 @@ os.environ['LOGURU_DEBUG_COLOR'] = '<fg #777>'
 REQUEST_ID_LENGTH = int(os.getenv('REQUEST_ID_LENGTH', '8'))
 PYGMENTS_STYLE = os.getenv('PYGMENTS_STYLE', 'github-dark')
 
-TIMEOUT: float = 0.2
+TIMEOUT: float = float(os.environ.get('TIMEOUT', 0.2))
 
 NSJAIL_PATH: str = os.getenv('NSJAIL_PATH', '/usr/sbin/nsjail')
 NSJAIL_CFG: str = os.getenv('NSJAIL_CFG', str(Path(__file__).parent / 'nsjail/nsjail.cfg'))
